@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart, Plus, Trash2, Upload } from "lucide-react";
+import { BarChart, Plus, Trash2, Upload, TrendingUp, Users } from "lucide-react";
 import type { Assessment, InsertAssessment } from "@shared/schema";
 
 export default function Assessments() {
@@ -108,6 +108,37 @@ export default function Assessments() {
     );
   }
 
+  // Calculate statistics for dashboard
+  const subjectStats = assessments.reduce((acc, assessment) => {
+    if (!assessment.score || !assessment.maxScore) return acc;
+    
+    if (!acc[assessment.subject]) {
+      acc[assessment.subject] = { total: 0, count: 0, scores: [] };
+    }
+    
+    const percentage = (assessment.score / assessment.maxScore) * 100;
+    acc[assessment.subject].total += percentage;
+    acc[assessment.subject].count += 1;
+    acc[assessment.subject].scores.push(percentage);
+    
+    return acc;
+  }, {} as Record<string, { total: number; count: number; scores: number[] }>);
+
+  const studentStats = assessments.reduce((acc, assessment) => {
+    if (!assessment.studentName || !assessment.score || !assessment.maxScore) return acc;
+    
+    if (!acc[assessment.studentName]) {
+      acc[assessment.studentName] = { total: 0, count: 0, scores: [] };
+    }
+    
+    const percentage = (assessment.score / assessment.maxScore) * 100;
+    acc[assessment.studentName].total += percentage;
+    acc[assessment.studentName].count += 1;
+    acc[assessment.studentName].scores.push(percentage);
+    
+    return acc;
+  }, {} as Record<string, { total: number; count: number; scores: number[] }>);
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -117,6 +148,132 @@ export default function Assessments() {
           평가 업로드
         </Button>
       </div>
+
+      {/* Performance Dashboard */}
+      {assessments.length > 0 && (
+        <div className="mb-8 space-y-6">
+          {/* Overall Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">총 평가 수</p>
+                    <p className="text-2xl font-bold text-gray-900">{assessments.length}</p>
+                  </div>
+                  <BarChart className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">평가 과목 수</p>
+                    <p className="text-2xl font-bold text-gray-900">{Object.keys(subjectStats).length}</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">평가된 학생 수</p>
+                    <p className="text-2xl font-bold text-gray-900">{Object.keys(studentStats).length}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Subject Performance */}
+          {Object.keys(subjectStats).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>과목별 성과 분석</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(subjectStats).map(([subject, stats]) => {
+                    const average = stats.total / stats.count;
+                    return (
+                      <div key={subject} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-900">{subject}</span>
+                          <span className="text-sm text-gray-600">
+                            평균: {average.toFixed(1)}% ({stats.count}개 평가)
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="bg-blue-600 h-3 rounded-full"
+                            style={{ width: `${Math.min(average, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Student Performance */}
+          {Object.keys(studentStats).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>학생별 성과 분석</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(studentStats)
+                    .sort(([,a], [,b]) => (b.total / b.count) - (a.total / a.count))
+                    .map(([studentName, stats]) => {
+                      const average = stats.total / stats.count;
+                      const performanceLevel = 
+                        average >= 90 ? { label: '우수', color: 'bg-green-100 text-green-800' } :
+                        average >= 80 ? { label: '양호', color: 'bg-blue-100 text-blue-800' } :
+                        average >= 70 ? { label: '보통', color: 'bg-yellow-100 text-yellow-800' } :
+                        { label: '노력필요', color: 'bg-red-100 text-red-800' };
+
+                      return (
+                        <Card key={studentName} className="p-4">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-medium text-gray-900">{studentName}</h4>
+                              <span className={`px-2 py-1 text-xs rounded-full ${performanceLevel.color}`}>
+                                {performanceLevel.label}
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">평균 점수</span>
+                                <span className="font-medium">{average.toFixed(1)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-primary h-2 rounded-full"
+                                  style={{ width: `${Math.min(average, 100)}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-xs text-gray-500">{stats.count}개 평가 완료</p>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Upload Form */}
       {isUploading && (

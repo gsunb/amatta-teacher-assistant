@@ -14,6 +14,7 @@ import Students from "@/pages/Students";
 import Settings from "@/pages/Settings";
 import Header from "@/components/Header";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import ChatBot from "@/components/ChatBot";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,6 +41,7 @@ function Router() {
         )}
         <Route component={NotFound} />
       </Switch>
+      {isAuthenticated && <ChatBot />}
     </div>
   );
 }

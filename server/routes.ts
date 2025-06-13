@@ -10,6 +10,46 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// Basic command parsing function for fallback when no API key is provided
+async function parseCommandBasic(command: string, userId: string) {
+  const results = [];
+  const lowerCommand = command.toLowerCase();
+  
+  // Simple pattern matching for common commands
+  if (lowerCommand.includes('일정') || lowerCommand.includes('스케줄') || lowerCommand.includes('약속')) {
+    // Extract basic schedule info
+    const titleMatch = command.match(/(.+?)\s*(일정|스케줄|약속)/);
+    const title = titleMatch ? titleMatch[1].trim() : '새로운 일정';
+    
+    // Default to today if no date specified
+    const today = new Date().toISOString().split('T')[0];
+    
+    const schedule = await storage.createSchedule(userId, {
+      title,
+      date: today,
+      time: undefined,
+      endTime: undefined,
+      description: `자동 생성됨: ${command}`
+    });
+    results.push({ type: 'schedule', data: schedule });
+  }
+  
+  if (lowerCommand.includes('기록') || lowerCommand.includes('사건') || lowerCommand.includes('문제')) {
+    const title = command.length > 20 ? command.substring(0, 20) + '...' : command;
+    const today = new Date().toISOString().split('T')[0];
+    
+    const record = await storage.createRecord(userId, {
+      title,
+      description: command,
+      date: today,
+      severity: 'medium'
+    });
+    results.push({ type: 'record', data: record });
+  }
+  
+  return results;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -222,7 +262,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get API key from request headers (sent from frontend)
       const apiKey = req.headers['x-gemini-api-key'];
       if (!apiKey) {
-        return res.status(400).json({ message: "Gemini API 키가 필요합니다. 설정에서 API 키를 입력해주세요." });
+        // Fallback: basic command parsing without AI
+        const results = await parseCommandBasic(command, userId);
+        return res.json({
+          message: `기본 명령 파싱으로 ${results.length}개의 작업이 처리되었습니다. 더 정확한 AI 처리를 위해 설정에서 Gemini API 키를 입력해주세요.`,
+          processed: true,
+          results,
+          fallback: true
+        });
       }
 
       // Call Google Gemini API
@@ -261,8 +308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       });
 
+      console.log('Gemini API response status:', geminiResponse.status);
+      
       if (!geminiResponse.ok) {
-        throw new Error('Gemini API 호출 실패');
+        const errorText = await geminiResponse.text();
+        console.error('Gemini API error response:', errorText);
+        throw new Error(`Gemini API 호출 실패: ${geminiResponse.status} - ${errorText}`);
       }
 
       const geminiData = await geminiResponse.json();

@@ -38,9 +38,7 @@ export default function Home() {
   const processCommandMutation = useMutation({
     mutationFn: async (command: string) => {
       const apiKey = localStorage.getItem("gemini_api_key");
-      if (!apiKey) {
-        throw new Error("Gemini API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.");
-      }
+      console.log("API Key exists:", !!apiKey);
       
       const response = await fetch("/api/process-command", {
         method: "POST",
