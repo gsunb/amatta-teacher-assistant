@@ -118,7 +118,7 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            안녕하세요, {user?.firstName || user?.email || "선생"}님!
+            안녕하세요, {(user as any)?.firstName || (user as any)?.email || "선생"}님!
           </h2>
           <p className="text-lg text-gray-600">오늘 무엇을 도와드릴까요?</p>
         </div>

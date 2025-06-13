@@ -58,15 +58,15 @@ export default function Header() {
               <Settings className="h-5 w-5" />
             </Link>
             <div className="flex items-center space-x-3">
-              {user?.profileImageUrl && (
+              {(user as any)?.profileImageUrl && (
                 <img
                   className="h-8 w-8 rounded-full object-cover"
-                  src={user.profileImageUrl}
+                  src={(user as any).profileImageUrl}
                   alt="프로필 이미지"
                 />
               )}
               <span className="text-sm font-medium text-gray-700">
-                {user?.firstName || user?.email || "사용자"}님
+                {(user as any)?.firstName || (user as any)?.email || "사용자"}님
               </span>
             </div>
             {/* Mobile menu button */}
