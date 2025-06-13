@@ -4,6 +4,9 @@ import {
   records,
   assessments,
   students,
+  parentCommunications,
+  notifications,
+  backups,
   type User,
   type UpsertUser,
   type Schedule,
@@ -14,6 +17,12 @@ import {
   type InsertAssessment,
   type Student,
   type InsertStudent,
+  type ParentCommunication,
+  type InsertParentCommunication,
+  type Notification,
+  type InsertNotification,
+  type Backup,
+  type InsertBackup,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";

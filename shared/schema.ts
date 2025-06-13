@@ -9,6 +9,7 @@ import {
   integer,
   date,
   time,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -80,6 +81,48 @@ export const students = pgTable("students", {
   studentNumber: text("student_number"),
   grade: text("grade"),
   class: text("class"),
+  riskLevel: text("risk_level").default("low"), // low, medium, high
+  lastAlertDate: timestamp("last_alert_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Parent communication logs
+export const parentCommunications = pgTable("parent_communications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  studentName: text("student_name").notNull(),
+  communicationType: text("communication_type").notNull(), // phone, meeting, email, message
+  purpose: text("purpose").notNull(),
+  summary: text("summary").notNull(),
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  followUpCompleted: boolean("follow_up_completed").default(false),
+  date: text("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Smart notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // reminder, alert, warning, info
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedEntity: text("related_entity"), // student_name, schedule_id, etc
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  isRead: boolean("is_read").default(false),
+  isSent: boolean("is_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Data backups
+export const backups = pgTable("backups", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  backupType: text("backup_type").notNull(), // auto, manual
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"),
+  status: text("status").notNull(), // pending, completed, failed
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -106,6 +149,26 @@ export const insertStudentSchema = createInsertSchema(students).omit({
   id: true,
   userId: true,
   createdAt: true,
+  riskLevel: true,
+  lastAlertDate: true,
+});
+
+export const insertParentCommunicationSchema = createInsertSchema(parentCommunications).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
+export const insertBackupSchema = createInsertSchema(backups).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
 });
 
 // Types
@@ -119,3 +182,9 @@ export type Assessment = typeof assessments.$inferSelect;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
 export type Student = typeof students.$inferSelect;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
+export type ParentCommunication = typeof parentCommunications.$inferSelect;
+export type InsertParentCommunication = z.infer<typeof insertParentCommunicationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Backup = typeof backups.$inferSelect;
+export type InsertBackup = z.infer<typeof insertBackupSchema>;
