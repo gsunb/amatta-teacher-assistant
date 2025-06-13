@@ -1,0 +1,79 @@
+Here’s the updated developer brief, with your new requirement added:
+
+---
+
+**Project: “Amatta” – Teacher’s AI Assistant Web App**
+
+### 1. Overview
+
+“Amatta” is a PWA for teachers to manage schedules, incident records, performance assessments, and student rosters—all via natural-language commands parsed by Google Gemini.
+
+### 2. Key Constraint
+
+> **Note:** The client is an English speaker. All internal documentation and comments should be written in English, but every user-facing output (UI text, labels, messages) must be delivered in Korean.
+
+### 3. Tech Stack
+
+* **Framework:** Next.js (App Router for UI, Pages Router for API)
+* **Styling:** Tailwind CSS
+* **Storage:** In-memory store via Next.js API (later swap to DB)
+* **AI Integration:** Google Gemini REST API
+* **Auth:** Google OAuth (NextAuth.js)
+* **Deployment:** Vercel
+
+### 4. Features
+
+#### A. Global Layout
+
+* `src/app/layout.tsx` with a single `<Header>` client component
+* Tailwind directives in `globals.css` and proper content paths in `tailwind.config.js`
+
+#### B. Settings (`/settings`)
+
+* Input and save Gemini API key to `localStorage`
+* UI in Korean; code comments in English
+
+#### C. Schedule Management (`/schedules`)
+
+* **API:**
+
+  * GET `/api/schedules`
+  * POST `/api/schedules` with `{ text: string }` → parse into `{ date, time, title }`
+  * DELETE `/api/schedules/[id]`
+* **UI (`src/app/schedules/page.tsx`):** Korean labels, input, and list display
+* Uses `fetch('/api/schedules')` in client code
+
+#### D. Incident Records (`/records`)
+
+* **API:** GET/POST `/api/records`, DELETE `/api/records/[id]`
+* **UI:** Korean text, list items with date & description
+
+#### E. Performance Upload (`/assessments/upload`)
+
+* **API:** POST `/api/assessments/upload` with `{ items: [{ subject, unit, task }] }`
+* **UI:** Multiline Korean placeholder, parse button, result list
+
+#### F. Student Roster (`/students`)
+
+* **API:** GET/POST `/api/students`
+* **UI:** Excel/CSV upload, parse 1st column, list names in Korean
+
+#### G. Natural-Language Entry (Home `/`)
+
+* Giant input “무엇을 도와드릴까요?” in Korean
+* Behind the scenes: call Gemini with saved API key
+
+### 5. Non-Functional Requirements
+
+1. **Clean Code:** components in English comments, UI in Korean
+2. **Responsive Design**
+3. **Tests:** 80%+ coverage on parsing & API handlers
+4. **Docs:**
+
+   * README in English
+   * API spec in English, but example requests/responses use Korean field names where user sees them
+5. **Security:** Keep API key in client localStorage; handle CORS/CSRF
+
+---
+
+Use this spec to scaffold the repo, implement pages in `src/app/...`, API routes in `pages/api/...`, integrate Gemini, and deploy. All code comments and docs in English; every end-user label, placeholder, and message must be in Korean.
