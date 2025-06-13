@@ -5,13 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download } from "lucide-react";
+import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download, Grid, List } from "lucide-react";
 import type { Assessment, InsertAssessment } from "@shared/schema";
 
 export default function Assessments() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadText, setUploadText] = useState("");
+  const [viewMode, setViewMode] = useState<'dashboard' | 'by-task'>('dashboard');
 
   // Fetch assessments
   const { data: assessments = [], isLoading } = useQuery<Assessment[]>({
@@ -156,11 +157,41 @@ export default function Assessments() {
     return acc;
   }, {} as Record<string, { total: number; count: number; scores: number[] }>);
 
+  // Group assessments by task for comparison view
+  const taskGroups = assessments.reduce((acc, assessment) => {
+    const taskKey = `${assessment.subject} - ${assessment.unit} - ${assessment.task}`;
+    if (!acc[taskKey]) {
+      acc[taskKey] = [];
+    }
+    acc[taskKey].push(assessment);
+    return acc;
+  }, {} as Record<string, Assessment[]>);
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">성과 평가</h1>
         <div className="flex space-x-2">
+          <div className="flex border rounded-lg overflow-hidden">
+            <Button
+              variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('dashboard')}
+              size="sm"
+              className="rounded-none"
+            >
+              <BarChart className="h-4 w-4 mr-2" />
+              대시보드
+            </Button>
+            <Button
+              variant={viewMode === 'by-task' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('by-task')}
+              size="sm"
+              className="rounded-none"
+            >
+              <Grid className="h-4 w-4 mr-2" />
+              과제별 비교
+            </Button>
+          </div>
           <Button variant="outline" onClick={downloadTemplate}>
             <Download className="h-4 w-4 mr-2" />
             템플릿 다운로드
@@ -172,8 +203,72 @@ export default function Assessments() {
         </div>
       </div>
 
+      {/* Task-by-Task Comparison View */}
+      {viewMode === 'by-task' && assessments.length > 0 && (
+        <div className="mb-8 space-y-6">
+          {Object.entries(taskGroups).map(([taskKey, taskAssessments]) => {
+            const sortedAssessments = taskAssessments
+              .filter(a => a.score !== null && a.maxScore !== null)
+              .sort((a, b) => ((b.score! / b.maxScore!) - (a.score! / a.maxScore!)) * 100);
+
+            if (sortedAssessments.length === 0) return null;
+
+            return (
+              <Card key={taskKey}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{taskKey}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {sortedAssessments.map((assessment, index) => {
+                      const percentage = assessment.score && assessment.maxScore 
+                        ? (assessment.score / assessment.maxScore) * 100 
+                        : 0;
+                      
+                      const rankColor = 
+                        index === 0 ? 'text-yellow-600' :
+                        index === 1 ? 'text-gray-500' :
+                        index === 2 ? 'text-orange-600' : 'text-gray-700';
+
+                      return (
+                        <div key={assessment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <span className={`font-bold text-lg ${rankColor}`}>
+                              {index + 1}위
+                            </span>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {assessment.studentName || '이름 없음'}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {assessment.score}점 / {assessment.maxScore}점
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-gray-900">
+                              {percentage.toFixed(1)}%
+                            </p>
+                            <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
+                              <div
+                                className="bg-primary h-2 rounded-full"
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       {/* Performance Dashboard */}
-      {assessments.length > 0 && (
+      {viewMode === 'dashboard' && assessments.length > 0 && (
         <div className="mb-8 space-y-6">
           {/* Overall Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
