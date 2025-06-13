@@ -86,14 +86,14 @@ export default function Assessments() {
   });
 
   const downloadTemplate = () => {
-    // Create proper Excel file with Korean text
+    // Create simple Excel template with only essential fields
     const templateData = [
-      ['학생이름', '과목', '평가항목', '점수', '만점', '날짜', '비고'],
-      ['김철수', '수학', '중간고사', 85, 100, '2024-03-15', '우수'],
-      ['이영희', '국어', '수행평가', 92, 100, '2024-03-16', '매우 우수'],
-      ['박민수', '영어', '단어시험', 78, 100, '2024-03-17', '보통'],
-      ['정수현', '과학', '실험보고서', 88, 100, '2024-03-18', '잘함'],
-      ['한지원', '사회', '발표과제', 95, 100, '2024-03-19', '탁월']
+      ['학생이름', '과목', '평가항목', '점수', '만점'],
+      ['김철수', '수학', '중간고사', 85, 100],
+      ['이영희', '국어', '수행평가', 92, 100],
+      ['박민수', '영어', '단어시험', 78, 100],
+      ['정수현', '과학', '실험보고서', 88, 100],
+      ['한지원', '사회', '발표과제', 95, 100]
     ];
 
     // Create workbook and worksheet
@@ -102,13 +102,11 @@ export default function Assessments() {
     
     // Set column widths for better display
     ws['!cols'] = [
-      { wch: 12 }, // 학생이름
-      { wch: 10 }, // 과목
-      { wch: 15 }, // 평가항목
-      { wch: 8 },  // 점수
-      { wch: 8 },  // 만점
-      { wch: 12 }, // 날짜
-      { wch: 15 }  // 비고
+      { wch: 15 }, // 학생이름
+      { wch: 12 }, // 과목
+      { wch: 18 }, // 평가항목
+      { wch: 10 }, // 점수
+      { wch: 10 }  // 만점
     ];
 
     // Append worksheet to workbook
@@ -119,7 +117,7 @@ export default function Assessments() {
 
     toast({
       title: "다운로드 완료",
-      description: "Excel 템플릿이 다운로드되었습니다. 한글이 정상적으로 표시됩니다.",
+      description: "Excel 템플릿이 다운로드되었습니다. 5개 열만 사용합니다: 학생이름, 과목, 평가항목, 점수, 만점",
     });
   };
 
@@ -179,7 +177,6 @@ export default function Assessments() {
               task: String(row[2] || '').trim(),
               score: Number(row[3]) || 0,
               maxScore: Number(row[4]) || 100,
-              notes: row[6] ? String(row[6]).trim() : undefined,
             });
           }
         }
@@ -187,7 +184,7 @@ export default function Assessments() {
         if (assessments.length > 0) {
           // Convert to text format for existing upload function
           const textData = assessments.map(a => 
-            `${a.subject}, , ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}${a.notes ? ', ' + a.notes : ''}`
+            `${a.subject}, , ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}`
           ).join('\n');
           
           setUploadText(textData);
@@ -553,17 +550,17 @@ export default function Assessments() {
               <div className="border-t pt-4">
                 <h4 className="font-medium text-gray-900 mb-2">텍스트 직접 입력</h4>
                 <p className="text-sm text-gray-600 mb-2">
-                  각 줄에 다음 형식으로 입력하세요: 학생이름, 과목, 평가항목, 점수, 만점, 비고
+                  각 줄에 다음 형식으로 입력하세요: 과목, 단원, 평가항목, 학생이름, 점수, 만점
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  예: 김철수, 수학, 중간고사, 85, 100, 우수
+                  예: 수학, , 중간고사, 김철수, 85, 100
                 </p>
                 <Textarea
                   value={uploadText}
                   onChange={(e) => setUploadText(e.target.value)}
-                  placeholder="김철수, 수학, 중간고사, 85, 100, 우수
-이영희, 국어, 수행평가, 92, 100, 매우 우수
-박민수, 영어, 단어시험, 78, 100, 보통"
+                  placeholder="수학, , 중간고사, 김철수, 85, 100
+국어, , 수행평가, 이영희, 92, 100
+영어, , 단어시험, 박민수, 78, 100"
                   rows={8}
                 />
               </div>
