@@ -81,6 +81,23 @@ export default function Assessments() {
     },
   });
 
+  const downloadTemplate = () => {
+    const csvContent = "과목,단원,과제명,학생명,점수,만점,비고\n수학,1단원,중간고사,김철수,85,100,잘함\n국어,2단원,쪽지시험,이영희,92,100,우수\n영어,3단원,발표평가,박민수,78,100,노력필요";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "성과평가_템플릿.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+      title: "다운로드 완료",
+      description: "성과 평가 템플릿이 다운로드되었습니다.",
+    });
+  };
+
   const handleUpload = () => {
     if (!uploadText.trim()) {
       toast({
@@ -143,10 +160,16 @@ export default function Assessments() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">성과 평가</h1>
-        <Button onClick={() => setIsUploading(!isUploading)}>
-          <Upload className="h-4 w-4 mr-2" />
-          평가 업로드
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download className="h-4 w-4 mr-2" />
+            템플릿 다운로드
+          </Button>
+          <Button onClick={() => setIsUploading(!isUploading)}>
+            <Upload className="h-4 w-4 mr-2" />
+            평가 업로드
+          </Button>
+        </div>
       </div>
 
       {/* Performance Dashboard */}
