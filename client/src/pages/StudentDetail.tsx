@@ -246,8 +246,8 @@ export default function StudentDetail() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {Object.entries(
-                studentAssessments.reduce((acc, assessment) => {
+              {(() => {
+                const subjectStats = studentAssessments.reduce((acc, assessment) => {
                   if (!assessment.score || !assessment.maxScore) return acc;
                   
                   if (!acc[assessment.subject]) {
@@ -260,8 +260,10 @@ export default function StudentDetail() {
                   acc[assessment.subject].scores.push(percentage);
                   
                   return acc;
-                }, {} as { [key: string]: { total: number; count: number; scores: number[] } })
-              ).map(([subject, stats]) => {
+                }, {} as { [key: string]: { total: number; count: number; scores: number[] } });
+                
+                return Object.entries(subjectStats);
+              })().map(([subject, stats]) => {
                 const average = stats.total / stats.count;
                 return (
                   <div key={subject} className="space-y-2">

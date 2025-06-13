@@ -12,6 +12,7 @@ import Records from "@/pages/Records";
 import Assessments from "@/pages/Assessments";
 import Students from "@/pages/Students";
 import StudentDetail from "@/pages/StudentDetail";
+import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import Header from "@/components/Header";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -38,6 +39,7 @@ function Router() {
             <Route path="/assessments" component={Assessments} />
             <Route path="/students/:studentName" component={StudentDetail} />
             <Route path="/students" component={Students} />
+            <Route path="/reports" component={Reports} />
             <Route path="/settings" component={Settings} />
           </>
         )}

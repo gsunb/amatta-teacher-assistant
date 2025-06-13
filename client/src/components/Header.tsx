@@ -15,6 +15,7 @@ export default function Header() {
     { name: "사건 기록", href: "/records" },
     { name: "성과 평가", href: "/assessments" },
     { name: "학생 명단", href: "/students" },
+    { name: "보고서", href: "/reports" },
   ];
 
   const isCurrentPage = (href: string) => {

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, Plus, Trash2, Upload, FileText, Download } from "lucide-react";
+import { Link } from "wouter";
 import type { Student, InsertStudent } from "@shared/schema";
 
 export default function Students() {
@@ -329,9 +330,11 @@ export default function Students() {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        {student.name}
-                      </h3>
+                      <Link href={`/students/${encodeURIComponent(student.name)}`}>
+                        <h3 className="font-semibold text-gray-900 mb-2 hover:text-primary cursor-pointer transition-colors">
+                          {student.name}
+                        </h3>
+                      </Link>
                       
                       <div className="space-y-1 text-sm text-gray-600">
                         {student.studentNumber && (
