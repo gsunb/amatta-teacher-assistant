@@ -132,12 +132,12 @@ export default function Students() {
   const downloadTemplate = () => {
     // Create simple Excel template for students
     const templateData = [
-      ['이름', '학번', '학년', '반'],
-      ['김철수', '20240001', '1', 'A'],
-      ['이영희', '20240002', '1', 'B'],
-      ['박민수', '20240003', '2', 'A'],
-      ['정수현', '20240004', '2', 'B'],
-      ['한지원', '20240005', '3', 'A']
+      ['학년', '반', '번호', '이름', '성별'],
+      ['1', 'A', '1', '김철수', '남'],
+      ['1', 'B', '2', '이영희', '여'],
+      ['2', 'A', '3', '박민수', '남'],
+      ['2', 'B', '4', '정수현', '남'],
+      ['3', 'A', '5', '한지원', '여']
     ];
 
     // Create workbook and worksheet
@@ -146,10 +146,11 @@ export default function Students() {
     
     // Set column widths for better display
     ws['!cols'] = [
-      { wch: 12 }, // 이름
-      { wch: 12 }, // 학번
       { wch: 8 },  // 학년
-      { wch: 8 }   // 반
+      { wch: 8 },  // 반
+      { wch: 8 },  // 번호
+      { wch: 12 }, // 이름
+      { wch: 8 }   // 성별
     ];
 
     // Append worksheet to workbook
@@ -160,7 +161,7 @@ export default function Students() {
 
     toast({
       title: "다운로드 완료",
-      description: "Excel 템플릿이 다운로드되었습니다. 4개 열: 이름, 학번, 학년, 반",
+      description: "Excel 템플릿이 다운로드되었습니다. 5개 열: 학년, 반, 번호, 이름, 성별",
     });
   };
 

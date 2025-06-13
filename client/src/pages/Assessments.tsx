@@ -88,12 +88,12 @@ export default function Assessments() {
   const downloadTemplate = () => {
     // Create simple Excel template with only essential fields
     const templateData = [
-      ['학생이름', '과목', '평가항목', '점수', '만점'],
-      ['김철수', '수학', '중간고사', 85, 100],
-      ['이영희', '국어', '수행평가', 92, 100],
-      ['박민수', '영어', '단어시험', 78, 100],
-      ['정수현', '과학', '실험보고서', 88, 100],
-      ['한지원', '사회', '발표과제', 95, 100]
+      ['번호', '이름', '과목', '단원', '종류', '점수', '만점'],
+      [1, '김철수', '수학', '2차 함수', '중간고사', 85, 100],
+      [2, '이영희', '국어', '문학', '수행평가', 92, 100],
+      [3, '박민수', '영어', '독해', '단어시험', 78, 100],
+      [4, '정수현', '과학', '물리', '실험보고서', 88, 100],
+      [5, '한지원', '사회', '근현대사', '발표과제', 95, 100]
     ];
 
     // Create workbook and worksheet
@@ -102,11 +102,13 @@ export default function Assessments() {
     
     // Set column widths for better display
     ws['!cols'] = [
-      { wch: 15 }, // 학생이름
-      { wch: 12 }, // 과목
-      { wch: 18 }, // 평가항목
-      { wch: 10 }, // 점수
-      { wch: 10 }  // 만점
+      { wch: 8 },  // 번호
+      { wch: 12 }, // 이름
+      { wch: 10 }, // 과목
+      { wch: 15 }, // 단원
+      { wch: 12 }, // 종류
+      { wch: 8 },  // 점수
+      { wch: 8 }   // 만점
     ];
 
     // Append worksheet to workbook
@@ -117,7 +119,7 @@ export default function Assessments() {
 
     toast({
       title: "다운로드 완료",
-      description: "Excel 템플릿이 다운로드되었습니다. 5개 열만 사용합니다: 학생이름, 과목, 평가항목, 점수, 만점",
+      description: "Excel 템플릿이 다운로드되었습니다. 7개 열: 번호, 이름, 과목, 단원, 종류, 점수, 만점",
     });
   };
 
@@ -169,14 +171,14 @@ export default function Assessments() {
         const assessments: InsertAssessment[] = [];
 
         for (const row of dataRows) {
-          if (row.length >= 5 && row[0] && row[1] && row[2]) {
+          if (row.length >= 7 && row[1] && row[2] && row[4]) {
             assessments.push({
-              studentName: String(row[0] || '').trim(),
-              subject: String(row[1] || '').trim(),
-              unit: '', // Default empty unit
-              task: String(row[2] || '').trim(),
-              score: Number(row[3]) || 0,
-              maxScore: Number(row[4]) || 100,
+              studentName: String(row[1] || '').trim(), // 이름
+              subject: String(row[2] || '').trim(),     // 과목
+              unit: String(row[3] || '').trim(),        // 단원
+              task: String(row[4] || '').trim(),        // 종류
+              score: Number(row[5]) || 0,               // 점수
+              maxScore: Number(row[6]) || 100,          // 만점
             });
           }
         }
@@ -184,7 +186,7 @@ export default function Assessments() {
         if (assessments.length > 0) {
           // Convert to text format for existing upload function
           const textData = assessments.map(a => 
-            `${a.subject}, , ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}`
+            `${a.subject}, ${a.unit}, ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}`
           ).join('\n');
           
           setUploadText(textData);
