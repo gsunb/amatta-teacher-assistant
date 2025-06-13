@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart, Plus, Trash2, Upload, TrendingUp, Users } from "lucide-react";
+import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download } from "lucide-react";
 import type { Assessment, InsertAssessment } from "@shared/schema";
 
 export default function Assessments() {

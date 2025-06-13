@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Plus, Trash2, Upload, FileText } from "lucide-react";
+import { Users, Plus, Trash2, Upload, FileText, Download } from "lucide-react";
 import type { Student, InsertStudent } from "@shared/schema";
 
 export default function Students() {
@@ -107,6 +107,23 @@ export default function Students() {
     createStudentMutation.mutate(newStudent);
   };
 
+  const downloadTemplate = () => {
+    const csvContent = "이름,학번,학년,반\n김철수,20240001,1,A\n이영희,20240002,1,B\n박민수,20240003,2,A";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "학생명단_템플릿.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+      title: "다운로드 완료",
+      description: "학생 명단 템플릿이 다운로드되었습니다.",
+    });
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -177,6 +194,13 @@ export default function Students() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">학생 명단</h1>
         <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={downloadTemplate}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            템플릿 다운로드
+          </Button>
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}

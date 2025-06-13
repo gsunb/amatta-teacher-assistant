@@ -17,7 +17,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Link } from "wouter";
-import type { Schedule, Record } from "@shared/schema";
+import type { Schedule, Record, Assessment, Student } from "@shared/schema";
 
 export default function Home() {
   const { user } = useAuth();
@@ -32,6 +32,16 @@ export default function Home() {
   // Fetch recent records
   const { data: records = [] } = useQuery<Record[]>({
     queryKey: ["/api/records"],
+  });
+
+  // Fetch assessments
+  const { data: assessments = [] } = useQuery<Assessment[]>({
+    queryKey: ["/api/assessments"],
+  });
+
+  // Fetch students
+  const { data: students = [] } = useQuery<Student[]>({
+    queryKey: ["/api/students"],
   });
 
   // Process natural language command
