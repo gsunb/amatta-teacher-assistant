@@ -40,7 +40,7 @@ export default function Home() {
       const apiKey = localStorage.getItem("gemini_api_key");
       console.log("API Key exists:", !!apiKey);
       
-      const headers: Record<string, string> = {
+      const headers: { [key: string]: string } = {
         "Content-Type": "application/json",
       };
       
@@ -123,7 +123,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             안녕하세요, {(user as any)?.firstName || (user as any)?.email || "선생"}님!
           </h2>
-          <p className="text-lg text-gray-600">오늘 무엇을 도와드릴까요?</p>
+          <p className="text-lg text-gray-600">기록할 일정, 사건, 성적을 편하게 입력하세요.</p>
         </div>
 
         {/* Main AI Input Section */}
@@ -135,7 +135,7 @@ export default function Home() {
                 onChange={(e) => setNaturalLanguageInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="min-h-[120px] resize-none text-base"
-                placeholder="무엇을 도와드릴까요? 예: '내일 오후 2시에 학부모 상담 일정 추가해줘' 또는 '이번 주 수학 시험 결과 정리해줘'"
+                placeholder="자연어로 편하게 입력하세요. 예: '내일 오후 2시에 학부모 상담 일정 추가해줘' 또는 '김루피가 이빙봉 놀려서 지도하고 학부모 상담 진행함'"
               />
               
               {/* AI Status Indicator */}
@@ -173,7 +173,7 @@ export default function Home() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Calendar className="h-6 w-6 text-blue-600" />
                   </div>
-                  <span className="text-sm text-gray-500">오늘 {todaySchedules.length}개</span>
+                  <span className="text-sm text-gray-500">총 {schedules.length}개</span>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">일정 관리</h3>
                 <p className="text-sm text-gray-600">수업, 회의, 상담 일정을 관리하세요</p>
@@ -205,7 +205,7 @@ export default function Home() {
                   <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                     <BarChart className="h-6 w-6 text-green-600" />
                   </div>
-                  <span className="text-sm text-gray-500">대기 중 0개</span>
+                  <span className="text-sm text-gray-500">총 {assessments.length}개</span>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">성과 평가</h3>
                 <p className="text-sm text-gray-600">학생들의 학업 성과를 업로드하고 분석하세요</p>
@@ -221,7 +221,7 @@ export default function Home() {
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                     <Users className="h-6 w-6 text-purple-600" />
                   </div>
-                  <span className="text-sm text-gray-500">총 0명</span>
+                  <span className="text-sm text-gray-500">총 {students.length}명</span>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">학생 명단</h3>
                 <p className="text-sm text-gray-600">Excel/CSV로 학생 명단을 관리하세요</p>
