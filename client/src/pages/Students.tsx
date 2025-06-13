@@ -213,12 +213,13 @@ export default function Students() {
         const students: InsertStudent[] = [];
 
         for (const row of dataRows) {
-          if (row.length >= 1 && row[0]) {
+          if (row.length >= 5 && row[3]) {
             students.push({
-              name: String(row[0] || '').trim(),
-              studentNumber: row[1] ? String(row[1]).trim() : null,
-              grade: row[2] ? String(row[2]).trim() : null,
-              class: row[3] ? String(row[3]).trim() : null,
+              name: String(row[3] || '').trim(),        // 이름
+              studentNumber: row[2] ? String(row[2]).trim() : null, // 번호
+              grade: row[0] ? String(row[0]).trim() : null,         // 학년
+              class: row[1] ? String(row[1]).trim() : null,         // 반
+              // gender: row[4] ? String(row[4]).trim() : null,     // 성별 (스키마에 추가 필요)
             });
           }
         }
@@ -359,17 +360,17 @@ export default function Students() {
               <div className="border-t pt-4">
                 <h4 className="font-medium text-gray-900 mb-2">텍스트 직접 입력</h4>
                 <p className="text-sm text-gray-600 mb-2">
-                  각 줄에 다음 형식으로 입력하세요: 이름, 학번, 학년, 반
+                  각 줄에 다음 형식으로 입력하세요: 이름, 번호, 학년, 반
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  예: 김철수, 20240001, 1, A
+                  예: 김철수, 1, 1, A
                 </p>
                 <Textarea
                   value={uploadText}
                   onChange={(e) => setUploadText(e.target.value)}
-                  placeholder="김철수, 20240001, 1, A
-이영희, 20240002, 1, B
-박민수, 20240003, 2, A"
+                  placeholder="김철수, 1, 1, A
+이영희, 2, 1, B
+박민수, 3, 2, A"
                   rows={8}
                 />
               </div>

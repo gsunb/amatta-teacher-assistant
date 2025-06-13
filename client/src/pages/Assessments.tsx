@@ -555,14 +555,14 @@ export default function Assessments() {
                   각 줄에 다음 형식으로 입력하세요: 과목, 단원, 평가항목, 학생이름, 점수, 만점
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  예: 수학, , 중간고사, 김철수, 85, 100
+                  예: 수학, 2차 함수, 중간고사, 김철수, 85, 100
                 </p>
                 <Textarea
                   value={uploadText}
                   onChange={(e) => setUploadText(e.target.value)}
-                  placeholder="수학, , 중간고사, 김철수, 85, 100
-국어, , 수행평가, 이영희, 92, 100
-영어, , 단어시험, 박민수, 78, 100"
+                  placeholder="수학, 2차 함수, 중간고사, 김철수, 85, 100
+국어, 문학, 수행평가, 이영희, 92, 100
+영어, 독해, 단어시험, 박민수, 78, 100"
                   rows={8}
                 />
               </div>
