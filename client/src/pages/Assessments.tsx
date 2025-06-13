@@ -157,6 +157,7 @@ export default function Assessments() {
             assessments.push({
               studentName: String(row[0] || '').trim(),
               subject: String(row[1] || '').trim(),
+              unit: '', // Default empty unit
               task: String(row[2] || '').trim(),
               score: Number(row[3]) || 0,
               maxScore: Number(row[4]) || 100,
@@ -168,7 +169,7 @@ export default function Assessments() {
         if (assessments.length > 0) {
           // Convert to text format for existing upload function
           const textData = assessments.map(a => 
-            `${a.studentName}, ${a.subject}, ${a.task}, ${a.score}, ${a.maxScore}, ${a.date}${a.notes ? ', ' + a.notes : ''}`
+            `${a.studentName}, ${a.subject}, ${a.task}, ${a.score}, ${a.maxScore}${a.notes ? ', ' + a.notes : ''}`
           ).join('\n');
           
           setUploadText(textData);
@@ -492,21 +493,49 @@ export default function Assessments() {
             <CardTitle>평가 데이터 업로드</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                각 줄에 다음 형식으로 입력하세요: 과목, 단원, 과제, 학생이름, 점수, 만점, 비고
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                예: 수학, 2차 함수, 중간고사, 김철수, 85, 100, 우수
-              </p>
-              <Textarea
-                value={uploadText}
-                onChange={(e) => setUploadText(e.target.value)}
-                placeholder="수학, 2차 함수, 중간고사, 김철수, 85, 100, 우수
-영어, 문법, 퀴즈, 이영희, 92, 100, 매우 우수
-과학, 물리, 실험보고서, 박민수, 78, 100"
-                rows={8}
-              />
+            {/* Excel Upload Section */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Excel 파일 업로드</h4>
+                <div className="flex items-center space-x-4">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleExcelUpload}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={downloadTemplate}
+                    size="sm"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    템플릿 다운로드
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Excel 파일을 선택하면 자동으로 업로드됩니다. 템플릿을 다운로드하여 형식을 확인하세요.
+                </p>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-900 mb-2">텍스트 직접 입력</h4>
+                <p className="text-sm text-gray-600 mb-2">
+                  각 줄에 다음 형식으로 입력하세요: 학생이름, 과목, 평가항목, 점수, 만점, 비고
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  예: 김철수, 수학, 중간고사, 85, 100, 우수
+                </p>
+                <Textarea
+                  value={uploadText}
+                  onChange={(e) => setUploadText(e.target.value)}
+                  placeholder="김철수, 수학, 중간고사, 85, 100, 우수
+이영희, 국어, 수행평가, 92, 100, 매우 우수
+박민수, 영어, 단어시험, 78, 100, 보통"
+                  rows={8}
+                />
+              </div>
             </div>
 
             <div className="flex space-x-2">
