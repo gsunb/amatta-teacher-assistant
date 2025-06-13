@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download, Grid, List } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download, Grid, List, FileSpreadsheet } from "lucide-react";
+import * as XLSX from 'xlsx';
 import type { Assessment, InsertAssessment } from "@shared/schema";
 
 export default function Assessments() {
@@ -13,6 +15,7 @@ export default function Assessments() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadText, setUploadText] = useState("");
   const [viewMode, setViewMode] = useState<'dashboard' | 'by-task'>('dashboard');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch assessments
   const { data: assessments = [], isLoading } = useQuery<Assessment[]>({
@@ -83,20 +86,109 @@ export default function Assessments() {
   });
 
   const downloadTemplate = () => {
-    const csvContent = "과목,단원,과제명,학생명,점수,만점,비고\n수학,1단원,중간고사,김철수,85,100,잘함\n국어,2단원,쪽지시험,이영희,92,100,우수\n영어,3단원,발표평가,박민수,78,100,노력필요";
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
+    // Create proper Korean Excel template with UTF-8 encoding
+    const templateData = [
+      ['학생이름', '과목', '평가항목', '점수', '만점', '날짜', '비고'],
+      ['김철수', '수학', '중간고사', 85, 100, '2024-03-15', '우수'],
+      ['이영희', '국어', '수행평가', 92, 100, '2024-03-16', '매우 우수'],
+      ['박민수', '영어', '단어시험', 78, 100, '2024-03-17', '보통'],
+      ['정수현', '과학', '실험보고서', 88, 100, '2024-03-18', '잘함'],
+      ['한지원', '사회', '발표과제', 95, 100, '2024-03-19', '탁월'],
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(templateData);
+    
+    // Set column widths for better Korean text readability
+    ws['!cols'] = [
+      { wch: 15 }, // 학생이름
+      { wch: 12 }, // 과목
+      { wch: 18 }, // 평가항목
+      { wch: 10 }, // 점수
+      { wch: 10 }, // 만점
+      { wch: 15 }, // 날짜
+      { wch: 25 }  // 비고
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, '성과평가');
+    
+    // Write file with proper Korean character encoding
+    const wbout = XLSX.write(wb, { 
+      bookType: 'xlsx', 
+      type: 'array',
+      bookSST: false
+    });
+    
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "성과평가_템플릿.csv");
-    link.style.visibility = 'hidden';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '성과평가_템플릿.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     toast({
       title: "다운로드 완료",
       description: "성과 평가 템플릿이 다운로드되었습니다.",
     });
+  };
+
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        // Skip header row and process data
+        const rows = jsonData.slice(1) as any[][];
+        const assessments: InsertAssessment[] = [];
+
+        for (const row of rows) {
+          if (row.length >= 5) {
+            assessments.push({
+              studentName: String(row[0] || '').trim(),
+              subject: String(row[1] || '').trim(),
+              task: String(row[2] || '').trim(),
+              score: Number(row[3]) || 0,
+              maxScore: Number(row[4]) || 100,
+              notes: row[6] ? String(row[6]) : undefined,
+            });
+          }
+        }
+
+        if (assessments.length > 0) {
+          // Convert to text format for existing upload function
+          const textData = assessments.map(a => 
+            `${a.studentName}, ${a.subject}, ${a.task}, ${a.score}, ${a.maxScore}, ${a.date}${a.notes ? ', ' + a.notes : ''}`
+          ).join('\n');
+          
+          setUploadText(textData);
+          uploadAssessmentsMutation.mutate(textData);
+        } else {
+          toast({
+            title: "업로드 실패",
+            description: "올바른 데이터를 찾을 수 없습니다.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "파일 읽기 오류",
+          description: "Excel 파일을 읽는 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   const handleUpload = () => {
