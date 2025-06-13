@@ -231,10 +231,10 @@ export default function ParentCommunications() {
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="followUpRequired"
-                checked={newCommunication.followUpRequired}
+                checked={newCommunication.followUpRequired || false}
                 onCheckedChange={(checked) => setNewCommunication({ 
                   ...newCommunication, 
-                  followUpRequired: checked as boolean 
+                  followUpRequired: !!checked 
                 })}
               />
               <Label htmlFor="followUpRequired">후속 조치 필요</Label>

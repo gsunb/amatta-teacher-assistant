@@ -14,6 +14,9 @@ import Students from "@/pages/Students";
 import StudentDetail from "@/pages/StudentDetail";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
+import ParentCommunications from "@/pages/ParentCommunications";
+import Notifications from "@/pages/Notifications";
+import DataManagement from "@/pages/DataManagement";
 import Header from "@/components/Header";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ChatBot from "@/components/ChatBot";
@@ -40,6 +43,9 @@ function Router() {
             <Route path="/students/:studentName" component={StudentDetail} />
             <Route path="/students" component={Students} />
             <Route path="/reports" component={Reports} />
+            <Route path="/parent-communications" component={ParentCommunications} />
+            <Route path="/notifications" component={Notifications} />
+            <Route path="/data-management" component={DataManagement} />
             <Route path="/settings" component={Settings} />
           </>
         )}
