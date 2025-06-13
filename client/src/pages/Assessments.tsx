@@ -86,44 +86,28 @@ export default function Assessments() {
   });
 
   const downloadTemplate = () => {
-    // Create proper Korean Excel template with UTF-8 encoding
-    const templateData = [
-      ['학생이름', '과목', '평가항목', '점수', '만점', '날짜', '비고'],
-      ['김철수', '수학', '중간고사', 85, 100, '2024-03-15', '우수'],
-      ['이영희', '국어', '수행평가', 92, 100, '2024-03-16', '매우 우수'],
-      ['박민수', '영어', '단어시험', 78, 100, '2024-03-17', '보통'],
-      ['정수현', '과학', '실험보고서', 88, 100, '2024-03-18', '잘함'],
-      ['한지원', '사회', '발표과제', 95, 100, '2024-03-19', '탁월'],
-    ];
+    // Create CSV template with proper Korean encoding (UTF-8 BOM)
+    const csvContent = [
+      "학생이름,과목,평가항목,점수,만점,날짜,비고",
+      "김철수,수학,중간고사,85,100,2024-03-15,우수",
+      "이영희,국어,수행평가,92,100,2024-03-16,매우 우수", 
+      "박민수,영어,단어시험,78,100,2024-03-17,보통",
+      "정수현,과학,실험보고서,88,100,2024-03-18,잘함",
+      "한지원,사회,발표과제,95,100,2024-03-19,탁월"
+    ].join('\n');
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(templateData);
+    // Add UTF-8 BOM for proper Korean character display
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
     
-    // Set column widths for better Korean text readability
-    ws['!cols'] = [
-      { wch: 15 }, // 학생이름
-      { wch: 12 }, // 과목
-      { wch: 18 }, // 평가항목
-      { wch: 10 }, // 점수
-      { wch: 10 }, // 만점
-      { wch: 15 }, // 날짜
-      { wch: 25 }  // 비고
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, '성과평가');
-    
-    // Write file with proper Korean character encoding
-    const wbout = XLSX.write(wb, { 
-      bookType: 'xlsx', 
-      type: 'array',
-      bookSST: false
+    const blob = new Blob([csvWithBOM], { 
+      type: 'text/csv;charset=utf-8' 
     });
     
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = '성과평가_템플릿.xlsx';
+    link.download = '성과평가_템플릿.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -131,7 +115,7 @@ export default function Assessments() {
 
     toast({
       title: "다운로드 완료",
-      description: "성과 평가 템플릿이 다운로드되었습니다.",
+      description: "성과 평가 템플릿이 다운로드되었습니다. Excel에서 '데이터 > 텍스트/CSV에서' 메뉴를 사용하여 UTF-8로 가져오면 한글이 정상 표시됩니다.",
     });
   };
 
@@ -142,18 +126,48 @@ export default function Assessments() {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const data = e.target?.result as string;
+        let rows: any[][] = [];
+
+        // Check if it's a CSV file
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          // Handle CSV with proper Korean encoding
+          const lines = data.split('\n').filter(line => line.trim());
+          rows = lines.map(line => {
+            // Split by comma but handle quoted values
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            result.push(current.trim());
+            return result;
+          });
+        } else {
+          // Handle Excel files
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          rows = jsonData as any[][];
+        }
 
         // Skip header row and process data
-        const rows = jsonData.slice(1) as any[][];
+        const dataRows = rows.slice(1);
         const assessments: InsertAssessment[] = [];
 
-        for (const row of rows) {
-          if (row.length >= 5) {
+        for (const row of dataRows) {
+          if (row.length >= 5 && row[0] && row[1] && row[2]) {
             assessments.push({
               studentName: String(row[0] || '').trim(),
               subject: String(row[1] || '').trim(),
@@ -161,7 +175,7 @@ export default function Assessments() {
               task: String(row[2] || '').trim(),
               score: Number(row[3]) || 0,
               maxScore: Number(row[4]) || 100,
-              notes: row[6] ? String(row[6]) : undefined,
+              notes: row[6] ? String(row[6]).trim() : undefined,
             });
           }
         }
@@ -169,27 +183,39 @@ export default function Assessments() {
         if (assessments.length > 0) {
           // Convert to text format for existing upload function
           const textData = assessments.map(a => 
-            `${a.studentName}, ${a.subject}, ${a.task}, ${a.score}, ${a.maxScore}${a.notes ? ', ' + a.notes : ''}`
+            `${a.subject}, , ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}${a.notes ? ', ' + a.notes : ''}`
           ).join('\n');
           
           setUploadText(textData);
           uploadAssessmentsMutation.mutate(textData);
+          
+          toast({
+            title: "업로드 성공",
+            description: `${assessments.length}개의 평가 데이터가 업로드되었습니다.`,
+          });
         } else {
           toast({
             title: "업로드 실패",
-            description: "올바른 데이터를 찾을 수 없습니다.",
+            description: "올바른 데이터를 찾을 수 없습니다. 템플릿 형식을 확인해주세요.",
             variant: "destructive",
           });
         }
       } catch (error) {
+        console.error('File upload error:', error);
         toast({
           title: "파일 읽기 오류",
-          description: "Excel 파일을 읽는 중 오류가 발생했습니다.",
+          description: "파일을 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.",
           variant: "destructive",
         });
       }
     };
-    reader.readAsArrayBuffer(file);
+
+    // Read as text for CSV, as array buffer for Excel
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      reader.readAsText(file, 'UTF-8');
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const handleUpload = () => {
@@ -501,7 +527,7 @@ export default function Assessments() {
                   <Input
                     ref={fileInputRef}
                     type="file"
-                    accept=".xlsx,.xls"
+                    accept=".xlsx,.xls,.csv"
                     onChange={handleExcelUpload}
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
@@ -515,7 +541,8 @@ export default function Assessments() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Excel 파일을 선택하면 자동으로 업로드됩니다. 템플릿을 다운로드하여 형식을 확인하세요.
+                  CSV 또는 Excel 파일(.csv, .xlsx, .xls)을 선택하면 자동으로 업로드됩니다. 
+                  <br />템플릿을 다운로드하여 형식을 확인하고, CSV 파일의 경우 UTF-8 인코딩으로 저장해주세요.
                 </p>
               </div>
 
