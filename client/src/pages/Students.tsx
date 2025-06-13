@@ -6,14 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Plus, Trash2, Upload, FileText, Download } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Users, Plus, Trash2, Upload, FileText, Download, FileSpreadsheet } from "lucide-react";
 import { Link } from "wouter";
+import * as XLSX from 'xlsx';
 import type { Student, InsertStudent } from "@shared/schema";
 
 export default function Students() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadText, setUploadText] = useState("");
   const [newStudent, setNewStudent] = useState<InsertStudent>({
     name: "",
     studentNumber: "",
@@ -56,11 +60,28 @@ export default function Students() {
 
   // Upload students mutation
   const uploadStudentsMutation = useMutation({
-    mutationFn: async (students: InsertStudent[]) => {
-      return await apiRequest("POST", "/api/students", { students });
+    mutationFn: async (text: string) => {
+      const lines = text.trim().split('\n').filter(line => line.trim());
+      const items: InsertStudent[] = [];
+
+      for (const line of lines) {
+        const parts = line.split(',').map(part => part.trim());
+        if (parts.length >= 1 && parts[0]) {
+          items.push({
+            name: parts[0],
+            studentNumber: parts[1] || null,
+            grade: parts[2] || null,
+            class: parts[3] || null,
+          });
+        }
+      }
+
+      return await apiRequest("POST", "/api/students/upload", items);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/students"] });
+      setIsUploading(false);
+      setUploadText("");
       toast({
         title: "성공",
         description: "학생 명단이 업로드되었습니다.",
@@ -109,70 +130,146 @@ export default function Students() {
   };
 
   const downloadTemplate = () => {
-    const csvContent = "이름,학번,학년,반\n김철수,20240001,1,A\n이영희,20240002,1,B\n박민수,20240003,2,A";
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "학생명단_템플릿.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create simple Excel template for students
+    const templateData = [
+      ['이름', '학번', '학년', '반'],
+      ['김철수', '20240001', '1', 'A'],
+      ['이영희', '20240002', '1', 'B'],
+      ['박민수', '20240003', '2', 'A'],
+      ['정수현', '20240004', '2', 'B'],
+      ['한지원', '20240005', '3', 'A']
+    ];
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(templateData);
+    
+    // Set column widths for better display
+    ws['!cols'] = [
+      { wch: 12 }, // 이름
+      { wch: 12 }, // 학번
+      { wch: 8 },  // 학년
+      { wch: 8 }   // 반
+    ];
+
+    // Append worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, '학생명단');
+    
+    // Generate Excel file
+    XLSX.writeFile(wb, '학생명단_템플릿.xlsx');
+
     toast({
       title: "다운로드 완료",
-      description: "학생 명단 템플릿이 다운로드되었습니다.",
+      description: "Excel 템플릿이 다운로드되었습니다. 4개 열: 이름, 학번, 학년, 반",
     });
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
+        const data = e.target?.result as string;
+        let rows: any[][] = [];
+
+        // Check if it's a CSV file
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          // Handle CSV with proper Korean encoding
+          const lines = data.split('\n').filter(line => line.trim());
+          rows = lines.map(line => {
+            // Split by comma but handle quoted values
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            result.push(current.trim());
+            return result;
+          });
+        } else {
+          // Handle Excel files
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          rows = jsonData as any[][];
+        }
+
+        // Skip header row and process data
+        const dataRows = rows.slice(1);
         const students: InsertStudent[] = [];
 
-        lines.forEach((line, index) => {
-          if (index === 0 && (line.includes('이름') || line.includes('name'))) {
-            // Skip header row
-            return;
-          }
-
-          const columns = line.split(',').map(col => col.trim());
-          if (columns[0]) {
+        for (const row of dataRows) {
+          if (row.length >= 1 && row[0]) {
             students.push({
-              name: columns[0],
-              studentNumber: columns[1] || "",
-              grade: columns[2] || "",
-              class: columns[3] || "",
+              name: String(row[0] || '').trim(),
+              studentNumber: row[1] ? String(row[1]).trim() : null,
+              grade: row[2] ? String(row[2]).trim() : null,
+              class: row[3] ? String(row[3]).trim() : null,
             });
           }
-        });
+        }
 
         if (students.length > 0) {
-          uploadStudentsMutation.mutate(students);
+          // Convert to text format for existing upload function
+          const textData = students.map(s => 
+            `${s.name}, ${s.studentNumber || ''}, ${s.grade || ''}, ${s.class || ''}`
+          ).join('\n');
+          
+          setUploadText(textData);
+          uploadStudentsMutation.mutate(textData);
+          
+          toast({
+            title: "업로드 성공",
+            description: `${students.length}명의 학생 데이터가 업로드되었습니다.`,
+          });
         } else {
           toast({
-            title: "오류",
-            description: "유효한 학생 데이터를 찾을 수 없습니다.",
+            title: "업로드 실패",
+            description: "올바른 데이터를 찾을 수 없습니다. 템플릿 형식을 확인해주세요.",
             variant: "destructive",
           });
         }
       } catch (error) {
+        console.error('File upload error:', error);
         toast({
-          title: "오류",
-          description: "파일 읽기에 실패했습니다.",
+          title: "파일 읽기 오류",
+          description: "파일을 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.",
           variant: "destructive",
         });
       }
     };
 
-    reader.readAsText(file);
-    event.target.value = "";
+    // Read as text for CSV, as array buffer for Excel
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      reader.readAsText(file, 'UTF-8');
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
+  const handleUpload = () => {
+    if (!uploadText.trim()) {
+      toast({
+        title: "알림",
+        description: "업로드할 데이터를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    uploadStudentsMutation.mutate(uploadText);
   };
 
   if (isLoading) {
@@ -204,11 +301,10 @@ export default function Students() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadStudentsMutation.isPending}
+            onClick={() => setIsUploading(!isUploading)}
           >
             <Upload className="h-4 w-4 mr-2" />
-            파일 업로드
+            일괄 업로드
           </Button>
           <Button onClick={() => setIsAdding(!isAdding)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -221,26 +317,77 @@ export default function Students() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".csv,.txt"
-        onChange={handleFileUpload}
-        className="hidden"
+        accept=".xlsx,.xls,.csv"
+        onChange={handleExcelUpload}
+        style={{ display: 'none' }}
       />
 
-      {/* File Upload Instructions */}
-      <Card className="mb-6 bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start space-x-3">
-            <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <p className="text-sm text-blue-800 font-medium">CSV 파일 업로드 안내</p>
-              <p className="text-xs text-blue-600 mt-1">
-                CSV 파일의 첫 번째 열에 학생 이름을 입력하세요. 
-                선택사항: 학번(2열), 학년(3열), 반(4열)
-              </p>
+      {/* Upload Form */}
+      {isUploading && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>학생 명단 업로드</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Excel Upload Section */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Excel 파일 업로드</h4>
+                <div className="flex items-center space-x-4">
+                  <Input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleExcelUpload}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={downloadTemplate}
+                    size="sm"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    템플릿 다운로드
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  CSV 또는 Excel 파일(.csv, .xlsx, .xls)을 선택하면 자동으로 업로드됩니다. 
+                  <br />템플릿을 다운로드하여 형식을 확인하세요.
+                </p>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-900 mb-2">텍스트 직접 입력</h4>
+                <p className="text-sm text-gray-600 mb-2">
+                  각 줄에 다음 형식으로 입력하세요: 이름, 학번, 학년, 반
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  예: 김철수, 20240001, 1, A
+                </p>
+                <Textarea
+                  value={uploadText}
+                  onChange={(e) => setUploadText(e.target.value)}
+                  placeholder="김철수, 20240001, 1, A
+이영희, 20240002, 1, B
+박민수, 20240003, 2, A"
+                  rows={8}
+                />
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleUpload}
+                disabled={uploadStudentsMutation.isPending}
+              >
+                {uploadStudentsMutation.isPending ? "업로드 중..." : "업로드"}
+              </Button>
+              <Button variant="outline" onClick={() => setIsUploading(false)}>
+                취소
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Add Student Form */}
       {isAdding && (
@@ -256,7 +403,7 @@ export default function Students() {
                   id="name"
                   value={newStudent.name}
                   onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                  placeholder="예: 김철수"
+                  placeholder="학생 이름"
                 />
               </div>
               <div>
@@ -264,8 +411,8 @@ export default function Students() {
                 <Input
                   id="studentNumber"
                   value={newStudent.studentNumber || ""}
-                  onChange={(e) => setNewStudent({ ...newStudent, studentNumber: e.target.value || undefined })}
-                  placeholder="예: 2024001"
+                  onChange={(e) => setNewStudent({ ...newStudent, studentNumber: e.target.value })}
+                  placeholder="20240001"
                 />
               </div>
               <div>
@@ -273,8 +420,8 @@ export default function Students() {
                 <Input
                   id="grade"
                   value={newStudent.grade || ""}
-                  onChange={(e) => setNewStudent({ ...newStudent, grade: e.target.value || undefined })}
-                  placeholder="예: 3학년"
+                  onChange={(e) => setNewStudent({ ...newStudent, grade: e.target.value })}
+                  placeholder="1"
                 />
               </div>
               <div>
@@ -282,17 +429,14 @@ export default function Students() {
                 <Input
                   id="class"
                   value={newStudent.class || ""}
-                  onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value || undefined })}
-                  placeholder="예: 2반"
+                  onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value })}
+                  placeholder="A"
                 />
               </div>
             </div>
 
             <div className="flex space-x-2">
-              <Button 
-                onClick={handleSubmit}
-                disabled={createStudentMutation.isPending}
-              >
+              <Button onClick={handleSubmit} disabled={createStudentMutation.isPending}>
                 {createStudentMutation.isPending ? "추가 중..." : "추가"}
               </Button>
               <Button variant="outline" onClick={() => setIsAdding(false)}>
@@ -304,71 +448,55 @@ export default function Students() {
       )}
 
       {/* Students List */}
-      <div className="space-y-4">
-        {students.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">학생이 없습니다</h3>
-              <p className="text-gray-500 mb-4">학생을 추가하거나 CSV 파일을 업로드해보세요.</p>
-              <div className="flex justify-center space-x-2">
-                <Button onClick={() => setIsAdding(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  학생 추가
-                </Button>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  파일 업로드
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {students.map((student) => (
-              <Card key={student.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <Link href={`/students/${encodeURIComponent(student.name)}`}>
-                        <h3 className="font-semibold text-gray-900 mb-2 hover:text-primary cursor-pointer transition-colors">
-                          {student.name}
-                        </h3>
-                      </Link>
-                      
-                      <div className="space-y-1 text-sm text-gray-600">
-                        {student.studentNumber && (
-                          <p>학번: {student.studentNumber}</p>
-                        )}
-                        {student.grade && (
-                          <p>학년: {student.grade}</p>
-                        )}
-                        {student.class && (
-                          <p>반: {student.class}</p>
-                        )}
-                      </div>
+      {students.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">학생이 없습니다</h3>
+            <p className="text-gray-500 mb-4">새 학생을 추가하거나 파일을 업로드해보세요.</p>
+            <Button onClick={() => setIsAdding(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              첫 학생 추가
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {students.map((student) => (
+            <Card key={student.id}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Link href={`/students/${encodeURIComponent(student.name)}`}>
+                      <h3 className="text-lg font-semibold text-gray-900 hover:text-primary cursor-pointer">
+                        {student.name}
+                      </h3>
+                    </Link>
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                      {student.studentNumber && (
+                        <p>학번: {student.studentNumber}</p>
+                      )}
+                      {student.grade && (
+                        <p>학년: {student.grade}</p>
+                      )}
+                      {student.class && (
+                        <p>반: {student.class}</p>
+                      )}
                     </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteStudentMutation.mutate(student.id)}
-                      disabled={deleteStudentMutation.isPending}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {students.length > 0 && (
-        <div className="mt-6 text-center text-sm text-gray-500">
-          총 {students.length}명의 학생이 등록되어 있습니다.
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteStudentMutation.mutate(student.id)}
+                    disabled={deleteStudentMutation.isPending}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </main>
