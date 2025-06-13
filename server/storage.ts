@@ -52,6 +52,25 @@ export interface IStorage {
   createStudent(userId: string, student: InsertStudent): Promise<Student>;
   deleteStudent(userId: string, id: number): Promise<void>;
   createMultipleStudents(userId: string, students: InsertStudent[]): Promise<Student[]>;
+  updateStudentRiskLevel(userId: string, studentName: string, riskLevel: string): Promise<void>;
+
+  // Parent communication operations
+  getParentCommunications(userId: string): Promise<ParentCommunication[]>;
+  createParentCommunication(userId: string, communication: InsertParentCommunication): Promise<ParentCommunication>;
+  updateParentCommunication(userId: string, id: number, updates: Partial<InsertParentCommunication>): Promise<void>;
+  deleteParentCommunication(userId: string, id: number): Promise<void>;
+
+  // Notification operations
+  getNotifications(userId: string): Promise<Notification[]>;
+  createNotification(userId: string, notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(userId: string, id: number): Promise<void>;
+  markNotificationAsSent(userId: string, id: number): Promise<void>;
+  deleteNotification(userId: string, id: number): Promise<void>;
+
+  // Backup operations
+  getBackups(userId: string): Promise<Backup[]>;
+  createBackup(userId: string, backup: InsertBackup): Promise<Backup>;
+  updateBackupStatus(userId: string, id: number, status: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -168,9 +187,107 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(students.id, id), eq(students.userId, userId)));
   }
 
-  async createMultipleStudents(userId: string, students: InsertStudent[]): Promise<Student[]> {
-    const studentsWithUserId = students.map(student => ({ ...student, userId }));
+  async createMultipleStudents(userId: string, studentsData: InsertStudent[]): Promise<Student[]> {
+    const studentsWithUserId = studentsData.map(student => ({ ...student, userId }));
     return await db.insert(students).values(studentsWithUserId).returning();
+  }
+
+  async updateStudentRiskLevel(userId: string, studentName: string, riskLevel: string): Promise<void> {
+    await db
+      .update(students)
+      .set({ riskLevel, lastAlertDate: new Date() })
+      .where(and(eq(students.userId, userId), eq(students.name, studentName)));
+  }
+
+  // Parent communication operations
+  async getParentCommunications(userId: string): Promise<ParentCommunication[]> {
+    return await db
+      .select()
+      .from(parentCommunications)
+      .where(eq(parentCommunications.userId, userId))
+      .orderBy(desc(parentCommunications.createdAt));
+  }
+
+  async createParentCommunication(userId: string, communication: InsertParentCommunication): Promise<ParentCommunication> {
+    const [newCommunication] = await db
+      .insert(parentCommunications)
+      .values({ ...communication, userId })
+      .returning();
+    return newCommunication;
+  }
+
+  async updateParentCommunication(userId: string, id: number, updates: Partial<InsertParentCommunication>): Promise<void> {
+    await db
+      .update(parentCommunications)
+      .set(updates)
+      .where(and(eq(parentCommunications.id, id), eq(parentCommunications.userId, userId)));
+  }
+
+  async deleteParentCommunication(userId: string, id: number): Promise<void> {
+    await db
+      .delete(parentCommunications)
+      .where(and(eq(parentCommunications.id, id), eq(parentCommunications.userId, userId)));
+  }
+
+  // Notification operations
+  async getNotifications(userId: string): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async createNotification(userId: string, notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values({ ...notification, userId })
+      .returning();
+    return newNotification;
+  }
+
+  async markNotificationAsRead(userId: string, id: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  async markNotificationAsSent(userId: string, id: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isSent: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  async deleteNotification(userId: string, id: number): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  // Backup operations
+  async getBackups(userId: string): Promise<Backup[]> {
+    return await db
+      .select()
+      .from(backups)
+      .where(eq(backups.userId, userId))
+      .orderBy(desc(backups.createdAt));
+  }
+
+  async createBackup(userId: string, backup: InsertBackup): Promise<Backup> {
+    const [newBackup] = await db
+      .insert(backups)
+      .values({ ...backup, userId })
+      .returning();
+    return newBackup;
+  }
+
+  async updateBackupStatus(userId: string, id: number, status: string): Promise<void> {
+    await db
+      .update(backups)
+      .set({ status })
+      .where(and(eq(backups.id, id), eq(backups.userId, userId)));
   }
 }
 

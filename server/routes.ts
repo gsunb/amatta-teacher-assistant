@@ -428,6 +428,299 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Parent Communication routes
+  app.get('/api/parent-communications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const communications = await storage.getParentCommunications(userId);
+      res.json(communications);
+    } catch (error) {
+      console.error("Error fetching parent communications:", error);
+      res.status(500).json({ message: "Failed to fetch communications" });
+    }
+  });
+
+  app.post('/api/parent-communications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const communication = await storage.createParentCommunication(userId, req.body);
+      res.json(communication);
+    } catch (error) {
+      console.error("Error creating parent communication:", error);
+      res.status(500).json({ message: "Failed to create communication" });
+    }
+  });
+
+  app.patch('/api/parent-communications/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.updateParentCommunication(userId, id, req.body);
+      res.json({ message: "Communication updated successfully" });
+    } catch (error) {
+      console.error("Error updating parent communication:", error);
+      res.status(500).json({ message: "Failed to update communication" });
+    }
+  });
+
+  app.delete('/api/parent-communications/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteParentCommunication(userId, id);
+      res.json({ message: "Communication deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting parent communication:", error);
+      res.status(500).json({ message: "Failed to delete communication" });
+    }
+  });
+
+  // Notification routes
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notifications = await storage.getNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.post('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notification = await storage.createNotification(userId, req.body);
+      res.json(notification);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      res.status(500).json({ message: "Failed to create notification" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.markNotificationAsRead(userId, id);
+      res.json({ message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Risk assessment endpoint
+  app.post('/api/assess-risk', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get all data for risk assessment
+      const students = await storage.getStudents(userId);
+      const assessments = await storage.getAssessments(userId);
+      const records = await storage.getRecords(userId);
+      
+      const riskAssessments = await assessStudentRisks(students, assessments, records, userId);
+      
+      res.json({ riskAssessments, message: "Risk assessment completed" });
+    } catch (error) {
+      console.error("Error assessing risks:", error);
+      res.status(500).json({ message: "Failed to assess risks" });
+    }
+  });
+
+  // Data backup routes
+  app.get('/api/backups', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const backups = await storage.getBackups(userId);
+      res.json(backups);
+    } catch (error) {
+      console.error("Error fetching backups:", error);
+      res.status(500).json({ message: "Failed to fetch backups" });
+    }
+  });
+
+  app.post('/api/backup/create', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Create comprehensive backup
+      const backupData = await createDataBackup(userId);
+      const fileName = `backup_${new Date().toISOString().split('T')[0]}_${Date.now()}.json`;
+      
+      const backup = await storage.createBackup(userId, {
+        backupType: 'manual',
+        fileName,
+        fileSize: JSON.stringify(backupData).length,
+        status: 'completed'
+      });
+
+      res.json({ 
+        backup, 
+        data: backupData,
+        message: "Backup created successfully" 
+      });
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ message: "Failed to create backup" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Risk assessment utility function
+async function assessStudentRisks(students: any[], assessments: any[], records: any[], userId: string) {
+  const riskAssessments = [];
+
+  for (const student of students) {
+    const studentAssessments = assessments.filter(a => a.studentName === student.name);
+    const studentRecords = records.filter(r => 
+      r.title.includes(student.name) || r.description?.includes(student.name)
+    );
+
+    // Calculate risk factors
+    let riskScore = 0;
+    let riskFactors = [];
+
+    // Academic performance risk
+    if (studentAssessments.length > 0) {
+      const avgScore = studentAssessments
+        .filter(a => a.score && a.maxScore)
+        .reduce((sum, a) => sum + ((a.score / a.maxScore) * 100), 0) / 
+        studentAssessments.filter(a => a.score && a.maxScore).length;
+      
+      if (avgScore < 60) {
+        riskScore += 3;
+        riskFactors.push('학업 성취도 저조');
+      } else if (avgScore < 70) {
+        riskScore += 2;
+        riskFactors.push('학업 성취도 관심 필요');
+      }
+    }
+
+    // Behavioral risk
+    const highSeverityRecords = studentRecords.filter(r => r.severity === 'high');
+    const recentRecords = studentRecords.filter(r => {
+      const recordDate = new Date(r.date);
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      return recordDate > twoWeeksAgo;
+    });
+
+    if (highSeverityRecords.length >= 2) {
+      riskScore += 3;
+      riskFactors.push('심각한 행동 문제 반복');
+    } else if (highSeverityRecords.length === 1) {
+      riskScore += 2;
+      riskFactors.push('심각한 행동 문제');
+    }
+
+    if (recentRecords.length >= 3) {
+      riskScore += 2;
+      riskFactors.push('최근 문제 행동 빈발');
+    }
+
+    // Determine risk level
+    let riskLevel = 'low';
+    if (riskScore >= 5) {
+      riskLevel = 'high';
+    } else if (riskScore >= 3) {
+      riskLevel = 'medium';
+    }
+
+    // Update student risk level if changed
+    if (student.riskLevel !== riskLevel) {
+      await storage.updateStudentRiskLevel(userId, student.name, riskLevel);
+      
+      // Create notification for high/medium risk students
+      if (riskLevel !== 'low') {
+        await storage.createNotification(userId, {
+          type: 'alert',
+          title: `${student.name} 위험도 변경`,
+          message: `${student.name} 학생의 위험도가 ${riskLevel === 'high' ? '높음' : '보통'}으로 변경되었습니다. 즉시 관심이 필요합니다.`,
+          relatedEntity: student.name,
+          scheduledFor: new Date(),
+        });
+      }
+    }
+
+    riskAssessments.push({
+      studentName: student.name,
+      riskLevel,
+      riskScore,
+      riskFactors,
+      recommendations: generateRecommendations(riskLevel, riskFactors)
+    });
+  }
+
+  return riskAssessments;
+}
+
+// Generate recommendations based on risk factors
+function generateRecommendations(riskLevel: string, riskFactors: string[]) {
+  const recommendations = [];
+
+  if (riskLevel === 'high') {
+    recommendations.push('즉시 학부모 상담 실시');
+    recommendations.push('개별 학습 계획 수립');
+    recommendations.push('상담 교사와 연계');
+  } else if (riskLevel === 'medium') {
+    recommendations.push('주간 모니터링 실시');
+    recommendations.push('학부모 통화 권장');
+  }
+
+  if (riskFactors.includes('학업 성취도 저조')) {
+    recommendations.push('기초 학습 보충 프로그램 참여');
+    recommendations.push('또래 학습 멘토링 연결');
+  }
+
+  if (riskFactors.includes('심각한 행동 문제 반복')) {
+    recommendations.push('행동 수정 프로그램 참여');
+    recommendations.push('전문 상담 의뢰');
+  }
+
+  return recommendations.length > 0 ? recommendations : ['지속적인 관찰 유지'];
+}
+
+// Data backup utility function
+async function createDataBackup(userId: string) {
+  const [
+    schedules,
+    records,
+    assessments,
+    students,
+    parentCommunications,
+    notifications,
+  ] = await Promise.all([
+    storage.getSchedules(userId),
+    storage.getRecords(userId),
+    storage.getAssessments(userId),
+    storage.getStudents(userId),
+    storage.getParentCommunications(userId),
+    storage.getNotifications(userId),
+  ]);
+
+  return {
+    backupDate: new Date().toISOString(),
+    userId,
+    data: {
+      schedules,
+      records,
+      assessments,
+      students,
+      parentCommunications,
+      notifications,
+    },
+    summary: {
+      totalSchedules: schedules.length,
+      totalRecords: records.length,
+      totalAssessments: assessments.length,
+      totalStudents: students.length,
+      totalCommunications: parentCommunications.length,
+      totalNotifications: notifications.length,
+    }
+  };
 }
