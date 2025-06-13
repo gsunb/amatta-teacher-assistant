@@ -86,36 +86,40 @@ export default function Assessments() {
   });
 
   const downloadTemplate = () => {
-    // Create CSV template with proper Korean encoding (UTF-8 BOM)
-    const csvContent = [
-      "학생이름,과목,평가항목,점수,만점,날짜,비고",
-      "김철수,수학,중간고사,85,100,2024-03-15,우수",
-      "이영희,국어,수행평가,92,100,2024-03-16,매우 우수", 
-      "박민수,영어,단어시험,78,100,2024-03-17,보통",
-      "정수현,과학,실험보고서,88,100,2024-03-18,잘함",
-      "한지원,사회,발표과제,95,100,2024-03-19,탁월"
-    ].join('\n');
+    // Create proper Excel file with Korean text
+    const templateData = [
+      ['학생이름', '과목', '평가항목', '점수', '만점', '날짜', '비고'],
+      ['김철수', '수학', '중간고사', 85, 100, '2024-03-15', '우수'],
+      ['이영희', '국어', '수행평가', 92, 100, '2024-03-16', '매우 우수'],
+      ['박민수', '영어', '단어시험', 78, 100, '2024-03-17', '보통'],
+      ['정수현', '과학', '실험보고서', 88, 100, '2024-03-18', '잘함'],
+      ['한지원', '사회', '발표과제', 95, 100, '2024-03-19', '탁월']
+    ];
 
-    // Add UTF-8 BOM for proper Korean character display
-    const BOM = '\uFEFF';
-    const csvWithBOM = BOM + csvContent;
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(templateData);
     
-    const blob = new Blob([csvWithBOM], { 
-      type: 'text/csv;charset=utf-8' 
-    });
+    // Set column widths for better display
+    ws['!cols'] = [
+      { wch: 12 }, // 학생이름
+      { wch: 10 }, // 과목
+      { wch: 15 }, // 평가항목
+      { wch: 8 },  // 점수
+      { wch: 8 },  // 만점
+      { wch: 12 }, // 날짜
+      { wch: 15 }  // 비고
+    ];
+
+    // Append worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, '성과평가');
     
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '성과평가_템플릿.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Generate Excel file
+    XLSX.writeFile(wb, '성과평가_템플릿.xlsx');
 
     toast({
       title: "다운로드 완료",
-      description: "성과 평가 템플릿이 다운로드되었습니다. Excel에서 '데이터 > 텍스트/CSV에서' 메뉴를 사용하여 UTF-8로 가져오면 한글이 정상 표시됩니다.",
+      description: "Excel 템플릿이 다운로드되었습니다. 한글이 정상적으로 표시됩니다.",
     });
   };
 
