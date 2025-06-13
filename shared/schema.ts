@@ -41,7 +41,7 @@ export const schedules = pgTable("schedules", {
   userId: varchar("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   date: date("date").notNull(),
-  time: time("time").notNull(),
+  time: time("time"),
   endTime: time("end_time"),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),

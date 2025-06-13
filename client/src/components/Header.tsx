@@ -29,10 +29,10 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-primary">Amatta</h1>
+            <Link href="/" className="flex-shrink-0">
+              <h1 className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">Amatta</h1>
               <p className="text-xs text-gray-500 -mt-1">선생님의 AI 도우미</p>
-            </div>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

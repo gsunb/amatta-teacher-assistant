@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,19 +37,45 @@ export default function Home() {
   // Process natural language command
   const processCommandMutation = useMutation({
     mutationFn: async (command: string) => {
-      return await apiRequest("POST", "/api/process-command", { command });
+      const apiKey = localStorage.getItem("gemini_api_key");
+      if (!apiKey) {
+        throw new Error("Gemini API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.");
+      }
+      
+      const response = await fetch("/api/process-command", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Gemini-API-Key": apiKey,
+        },
+        credentials: "include",
+        body: JSON.stringify({ command }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "명령 처리에 실패했습니다.");
+      }
+
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/students"] });
+      
       toast({
         title: "성공",
-        description: "명령이 성공적으로 처리되었습니다.",
+        description: data.message || "명령이 성공적으로 처리되었습니다.",
       });
       setNaturalLanguageInput("");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "오류",
-        description: "명령 처리에 실패했습니다. 다시 시도해주세요.",
+        description: error.message,
         variant: "destructive",
       });
     },

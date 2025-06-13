@@ -77,10 +77,10 @@ export default function Schedules() {
   });
 
   const handleSubmit = () => {
-    if (!newSchedule.title || !newSchedule.date || !newSchedule.time) {
+    if (!newSchedule.title || !newSchedule.date) {
       toast({
         title: "알림",
-        description: "제목, 날짜, 시간은 필수 입력 항목입니다.",
+        description: "제목과 날짜는 필수 입력 항목입니다.",
         variant: "destructive",
       });
       return;
@@ -150,12 +150,12 @@ export default function Schedules() {
                 />
               </div>
               <div>
-                <Label htmlFor="time">시작 시간 *</Label>
+                <Label htmlFor="time">시작 시간</Label>
                 <Input
                   id="time"
                   type="time"
-                  value={newSchedule.time}
-                  onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                  value={newSchedule.time ?? ""}
+                  onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value || undefined })}
                 />
               </div>
               <div>
@@ -225,13 +225,15 @@ export default function Schedules() {
                         <Calendar className="h-4 w-4" />
                         <span>{formatDate(schedule.date)}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>
-                          {schedule.time}
-                          {schedule.endTime && ` - ${schedule.endTime}`}
-                        </span>
-                      </div>
+                      {schedule.time && (
+                        <div className="flex items-center space-x-1">
+                          <Clock className="h-4 w-4" />
+                          <span>
+                            {schedule.time}
+                            {schedule.endTime && ` - ${schedule.endTime}`}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
                     {schedule.description && (
