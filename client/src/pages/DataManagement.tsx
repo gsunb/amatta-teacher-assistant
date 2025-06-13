@@ -23,7 +23,7 @@ export default function DataManagement() {
     mutationFn: async () => {
       return await apiRequest("POST", "/api/backup/create");
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/backups"] });
       
       // Download the backup file

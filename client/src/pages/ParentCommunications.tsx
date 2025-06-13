@@ -313,11 +313,11 @@ export default function ParentCommunications() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Checkbox
-                            checked={communication.followUpCompleted}
+                            checked={Boolean(communication.followUpCompleted)}
                             onCheckedChange={(checked) => 
                               updateFollowUpMutation.mutate({ 
                                 id: communication.id, 
-                                completed: checked as boolean 
+                                completed: Boolean(checked)
                               })
                             }
                           />
