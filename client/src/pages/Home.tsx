@@ -40,12 +40,17 @@ export default function Home() {
       const apiKey = localStorage.getItem("gemini_api_key");
       console.log("API Key exists:", !!apiKey);
       
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      
+      if (apiKey) {
+        headers["X-Gemini-API-Key"] = apiKey;
+      }
+
       const response = await fetch("/api/process-command", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Gemini-API-Key": apiKey,
-        },
+        headers,
         credentials: "include",
         body: JSON.stringify({ command }),
       });
