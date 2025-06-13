@@ -119,7 +119,7 @@ export default function Settings() {
 
             <div className="space-y-2">
               <p className="text-sm text-gray-600">
-                Google AI Studio에서 API 키를 발급받을 수 있습니다.
+                Google AI Studio에서 API 키를 발급받을 수 있습니다. 현재 Gemini 1.5 Flash 모델을 사용합니다.
               </p>
               <a 
                 href="https://aistudio.google.com/app/apikey" 
