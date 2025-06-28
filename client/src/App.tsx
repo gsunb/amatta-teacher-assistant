@@ -13,6 +13,7 @@ import Assessments from "@/pages/Assessments";
 import Classes from "@/pages/Classes";
 import StudentDetail from "@/pages/StudentDetail";
 import Reports from "@/pages/Reports";
+import StudentReports from "@/pages/StudentReports";
 import Settings from "@/pages/Settings";
 import ParentCommunications from "@/pages/ParentCommunications";
 import Notifications from "@/pages/Notifications";

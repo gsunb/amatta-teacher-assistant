@@ -348,25 +348,57 @@ export default function Records() {
               </div>
 
               <div>
-                <Label>관련 학생</Label>
-                <Select
-                  value={editingRecord.studentId?.toString() || "none"}
-                  onValueChange={(value) => 
-                    setEditingRecord({ ...editingRecord, studentId: value === "none" ? null : parseInt(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">학생 미지정</SelectItem>
-                    {students.map((student) => (
-                      <SelectItem key={student.id} value={student.id.toString()}>
-                        {student.studentNumber}번 {student.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>관련 학생 (다중 선택 가능)</Label>
+                <div className="space-y-2">
+                  <Select
+                    onValueChange={(value) => {
+                      const studentId = parseInt(value);
+                      if (!editingRecord.studentIds?.includes(studentId)) {
+                        setEditingRecord({ 
+                          ...editingRecord, 
+                          studentIds: [...(editingRecord.studentIds || []), studentId]
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="학생을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {students.filter(student => !editingRecord.studentIds?.includes(student.id)).map((student) => (
+                        <SelectItem key={student.id} value={student.id.toString()}>
+                          {student.studentNumber}번 {student.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Selected students display */}
+                  {editingRecord.studentIds && editingRecord.studentIds.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {editingRecord.studentIds.map((studentId) => {
+                        const student = students.find(s => s.id === studentId);
+                        return student ? (
+                          <div key={studentId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                            {student.studentNumber}번 {student.name}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingRecord({
+                                  ...editingRecord,
+                                  studentIds: editingRecord.studentIds?.filter(id => id !== studentId) || null
+                                });
+                              }}
+                              className="ml-1 text-blue-600 hover:text-blue-800"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -460,12 +492,19 @@ export default function Records() {
                       </Badge>
                     </div>
                     
-                    {record.studentId && (
+                    {record.studentIds && record.studentIds.length > 0 && (
                       <div className="flex items-center space-x-2 mb-2">
                         <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">
-                          {getStudentName(record.studentId)}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {record.studentIds.map((studentId) => {
+                            const student = students.find(s => s.id === studentId);
+                            return student ? (
+                              <span key={studentId} className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                {student.studentNumber}번 {student.name}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
                       </div>
                     )}
                     
