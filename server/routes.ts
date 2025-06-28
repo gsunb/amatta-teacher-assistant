@@ -199,6 +199,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   setupGoogleAuth(app);
 
+  // Check if Google auth is available
+  app.get('/api/auth/google/available', (req, res) => {
+    res.json({ available: isGoogleAuthAvailable() });
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

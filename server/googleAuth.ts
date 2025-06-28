@@ -42,7 +42,7 @@ export function setupGoogleAuth(app: Express) {
 
         return done(null, sessionUser);
       } catch (error) {
-        return done(error, null);
+        return done(error as Error, false);
       }
     }));
 

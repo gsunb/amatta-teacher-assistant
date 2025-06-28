@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +13,18 @@ import {
   Check,
   Star
 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 
 export default function Landing() {
+  const [isGoogleAuthAvailable, setIsGoogleAuthAvailable] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/google/available')
+      .then(res => res.json())
+      .then(data => setIsGoogleAuthAvailable(data.available))
+      .catch(() => setIsGoogleAuthAvailable(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Navigation */}
@@ -75,6 +86,16 @@ export default function Landing() {
                 무료 체험 시작
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
+              {isGoogleAuthAvailable && (
+                <Button
+                  size="lg"
+                  onClick={() => window.location.href = "/api/auth/google"}
+                  className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 px-8 py-4 text-lg font-medium rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center"
+                >
+                  <SiGoogle className="mr-3 h-5 w-5 text-red-500" />
+                  Google로 시작하기
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="lg"
