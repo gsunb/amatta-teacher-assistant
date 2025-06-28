@@ -21,9 +21,13 @@ export default function Assessments() {
   const [sortBy, setSortBy] = useState<'score-high' | 'score-low' | 'number'>('score-high');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch assessments
+  // Fetch assessments and students
   const { data: assessments = [], isLoading } = useQuery<Assessment[]>({
     queryKey: ["/api/assessments"],
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ["/api/students"],
   });
 
   // Upload assessments mutation
@@ -275,8 +279,10 @@ export default function Assessments() {
         const percentageB2 = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
         return percentageA2 - percentageB2;
       case 'number':
-        const numberA = parseInt(a.studentName?.split(' ')[0] || '999');
-        const numberB = parseInt(b.studentName?.split(' ')[0] || '999');
+        const studentA = students.find(s => s.name === a.studentName);
+        const studentB = students.find(s => s.name === b.studentName);
+        const numberA = studentA ? parseInt(studentA.studentNumber) : 999;
+        const numberB = studentB ? parseInt(studentB.studentNumber) : 999;
         return numberA - numberB;
       default:
         return 0;

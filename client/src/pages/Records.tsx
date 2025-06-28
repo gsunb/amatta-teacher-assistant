@@ -255,7 +255,7 @@ export default function Records() {
                         const student = students.find(s => s.id === studentId);
                         return student ? (
                           <div key={studentId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                            {student.studentNumber}번 {student.name}
+                            {student.name}
                             <button
                               type="button"
                               onClick={() => {
@@ -380,7 +380,7 @@ export default function Records() {
                         const student = students.find(s => s.id === studentId);
                         return student ? (
                           <div key={studentId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                            {student.studentNumber}번 {student.name}
+                            {student.name}
                             <button
                               type="button"
                               onClick={() => {
@@ -500,7 +500,7 @@ export default function Records() {
                             const student = students.find(s => s.id === studentId);
                             return student ? (
                               <span key={studentId} className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                                {student.studentNumber}번 {student.name}
+                                {student.name}
                               </span>
                             ) : null;
                           })}
