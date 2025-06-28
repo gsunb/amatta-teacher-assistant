@@ -8,19 +8,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, List, CalendarDays } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, List, CalendarDays, Check, ChevronLeft, ChevronRight, Edit, Filter } from "lucide-react";
 import type { Schedule, InsertSchedule } from "@shared/schema";
 
 export default function Schedules() {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showCompleted, setShowCompleted] = useState(false);
   const [newSchedule, setNewSchedule] = useState<InsertSchedule>({
     title: "",
     date: "",
     time: "",
     endTime: "",
     description: "",
+    category: "일반",
+    categoryColor: "#3B82F6",
+    isCompleted: false,
+    isRecurring: false,
+    recurringType: undefined,
+    recurringEndDate: "",
   });
 
   // Fetch schedules
@@ -57,6 +67,28 @@ export default function Schedules() {
     },
   });
 
+  // Complete schedule mutation
+  const completeScheduleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest("PATCH", `/api/schedules/${id}/complete`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules/upcoming"] });
+      toast({
+        title: "성공",
+        description: "일정이 완료되었습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "일정 완료에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -64,6 +96,7 @@ export default function Schedules() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules/upcoming"] });
       toast({
         title: "성공",
         description: "일정이 삭제되었습니다.",
@@ -88,6 +121,23 @@ export default function Schedules() {
       return;
     }
     createScheduleMutation.mutate(newSchedule);
+  };
+
+  const categoryOptions = [
+    { value: "일반", color: "#3B82F6" },
+    { value: "수업", color: "#10B981" },
+    { value: "회의", color: "#F59E0B" },
+    { value: "상담", color: "#EF4444" },
+    { value: "행사", color: "#8B5CF6" },
+    { value: "개인", color: "#6B7280" },
+  ];
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   };
 
   const formatDate = (dateString: string) => {
@@ -127,14 +177,10 @@ export default function Schedules() {
     new Date(a).getTime() - new Date(b).getTime()
   );
 
-  // Generate calendar grid (current month)
+  // Generate calendar grid for current month
   const generateCalendarDays = () => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
     
@@ -150,6 +196,9 @@ export default function Schedules() {
   };
 
   const calendarDays = generateCalendarDays();
+
+  // Filter schedules based on completion status
+  const filteredSchedules = showCompleted ? schedules : schedules.filter(s => !s.isCompleted);
 
   if (isLoading) {
     return (
@@ -232,6 +281,79 @@ export default function Schedules() {
                 placeholder="추가 설명이나 준비사항을 입력하세요"
               />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">카테고리</Label>
+                <Select 
+                  value={newSchedule.category} 
+                  onValueChange={(value) => {
+                    const selectedCategory = categoryOptions.find(c => c.value === value);
+                    setNewSchedule({ 
+                      ...newSchedule, 
+                      category: value,
+                      categoryColor: selectedCategory?.color || "#3B82F6"
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          ></div>
+                          <span>{category.value}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="recurring"
+                  checked={newSchedule.isRecurring || false}
+                  onCheckedChange={(checked) => setNewSchedule({ ...newSchedule, isRecurring: checked })}
+                />
+                <Label htmlFor="recurring">반복 일정</Label>
+              </div>
+            </div>
+
+            {newSchedule.isRecurring && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-gray-50">
+                <div>
+                  <Label htmlFor="recurringType">반복 주기</Label>
+                  <Select 
+                    value={newSchedule.recurringType || ""} 
+                    onValueChange={(value) => setNewSchedule({ ...newSchedule, recurringType: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="반복 주기 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">매일</SelectItem>
+                      <SelectItem value="weekly">매주</SelectItem>
+                      <SelectItem value="monthly">매월</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="recurringEndDate">반복 종료일</Label>
+                  <Input
+                    id="recurringEndDate"
+                    type="date"
+                    value={newSchedule.recurringEndDate || ""}
+                    onChange={(e) => setNewSchedule({ ...newSchedule, recurringEndDate: e.target.value || undefined })}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex space-x-2">
               <Button 
