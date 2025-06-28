@@ -28,7 +28,7 @@ import {
   type InsertBackup,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -339,7 +339,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(students)
       .where(and(eq(students.userId, userId), eq(students.classId, classId)))
-      .orderBy(asc(students.studentNumber));
+      .orderBy(asc(sql`CAST(${students.studentNumber} AS INTEGER)`));
   }
 
   async createStudent(userId: string, student: InsertStudent): Promise<Student> {
