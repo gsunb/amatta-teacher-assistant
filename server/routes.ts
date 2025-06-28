@@ -236,6 +236,55 @@ async function parseCommandBasic(command: string, userId: string) {
       results.push({ type: 'parent_communication', data: communication });
     }
   }
+  // Enhanced attendance parsing for natural language commands
+  else if (lowerCommand.includes('체험학습') || lowerCommand.includes('지각') || lowerCommand.includes('조퇴') || lowerCommand.includes('결석')) {
+    const studentName = extractStudentName(command);
+    if (!studentName) {
+      return results;
+    }
+
+    // Get student to verify they exist
+    const students = await storage.getStudents(userId);
+    const student = students.find(s => s.name === studentName);
+    if (!student) {
+      return results;
+    }
+
+    const attendanceDetails = parseAttendanceDetails(command);
+    const classPeriod = parseClassPeriod(command);
+
+    // Handle date ranges for field trips
+    const dateRange = parseDateRange(command);
+    if (dateRange.length > 0) {
+      // Create multiple attendance records for date range
+      for (const date of dateRange) {
+        const attendanceData = {
+          studentId: student.id,
+          date: date,
+          status: attendanceDetails.status,
+          category: attendanceDetails.category,
+          reason: attendanceDetails.reason,
+          notes: `자연어 파싱: ${command}`
+        };
+        const attendance = await storage.createAttendance(userId, attendanceData);
+        results.push({ type: 'attendance', data: attendance });
+      }
+    } else {
+      // Single date attendance
+      const targetDate = parseNaturalLanguageDate(command);
+      const attendanceData = {
+        studentId: student.id,
+        date: targetDate,
+        status: attendanceDetails.status,
+        category: attendanceDetails.category,
+        reason: attendanceDetails.reason,
+        notes: `${classPeriod ? `${classPeriod} - ` : ''}자연어 파싱: ${command}`
+      };
+      
+      const attendance = await storage.createAttendance(userId, attendanceData);
+      results.push({ type: 'attendance', data: attendance });
+    }
+  }
   // Simple pattern matching for common commands
   else if (lowerCommand.includes('일정') || lowerCommand.includes('스케줄') || lowerCommand.includes('약속') || lowerCommand.includes('회의')) {
     // Extract basic schedule info

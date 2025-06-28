@@ -242,7 +242,7 @@ export default function Records() {
                     <SelectContent>
                       {students.filter(student => !newRecord.studentIds?.includes(student.id)).map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.studentNumber}번 {student.name}
+                          {student.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -367,7 +367,7 @@ export default function Records() {
                     <SelectContent>
                       {students.filter(student => !editingRecord.studentIds?.includes(student.id)).map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.studentNumber}번 {student.name}
+                          {student.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
