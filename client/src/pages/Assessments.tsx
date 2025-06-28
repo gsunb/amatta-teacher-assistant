@@ -26,7 +26,7 @@ export default function Assessments() {
     queryKey: ["/api/assessments"],
   });
 
-  const { data: students = [] } = useQuery({
+  const { data: students = [] } = useQuery<any[]>({
     queryKey: ["/api/students"],
   });
 
@@ -279,8 +279,8 @@ export default function Assessments() {
         const percentageB2 = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
         return percentageA2 - percentageB2;
       case 'number':
-        const studentA = students.find(s => s.name === a.studentName);
-        const studentB = students.find(s => s.name === b.studentName);
+        const studentA = students.find((s: any) => s.name === a.studentName);
+        const studentB = students.find((s: any) => s.name === b.studentName);
         const numberA = studentA ? parseInt(studentA.studentNumber) : 999;
         const numberB = studentB ? parseInt(studentB.studentNumber) : 999;
         return numberA - numberB;

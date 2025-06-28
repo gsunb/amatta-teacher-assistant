@@ -199,7 +199,7 @@ function parseAttendanceDetails(text: string): {
 
 // Basic command parsing function for fallback when no API key is provided
 async function parseCommandBasic(command: string, userId: string) {
-  const results = [];
+  const results: any[] = [];
   const lowerCommand = command.toLowerCase();
   
   // Improved consultation parsing - distinguish future vs past
