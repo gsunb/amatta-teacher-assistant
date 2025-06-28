@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 import { 
   GraduationCap, 
   Calendar, 
@@ -78,24 +79,24 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button
-                size="lg"
-                onClick={() => window.location.href = "/api/login"}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-              >
-                무료 체험 시작
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              {isGoogleAuthAvailable && (
+              <Link href="/signup">
                 <Button
                   size="lg"
-                  onClick={() => window.location.href = "/api/auth/google"}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+                >
+                  무료 체험 시작
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 px-8 py-4 text-lg font-medium rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center"
                 >
-                  <SiGoogle className="mr-3 h-5 w-5 text-red-500" />
-                  Google로 시작하기
+                  로그인
                 </Button>
-              )}
+              </Link>
               <Button
                 variant="outline"
                 size="lg"
