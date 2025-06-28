@@ -409,73 +409,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(parentCommunications.id, id), eq(parentCommunications.userId, userId)));
   }
 
-  // Attendance operations
-  async getAttendance(userId: string, date?: string): Promise<Attendance[]> {
-    if (date) {
-      return await db
-        .select()
-        .from(attendance)
-        .where(and(eq(attendance.userId, userId), eq(attendance.date, date)))
-        .orderBy(desc(attendance.date), desc(attendance.createdAt));
-    }
-    
-    return await db
-      .select()
-      .from(attendance)
-      .where(eq(attendance.userId, userId))
-      .orderBy(desc(attendance.date), desc(attendance.createdAt));
-  }
 
-  async createAttendance(userId: string, attendanceData: InsertAttendance): Promise<Attendance> {
-    const [newAttendance] = await db
-      .insert(attendance)
-      .values({ ...attendanceData, userId })
-      .returning();
-    return newAttendance;
-  }
-
-  async updateAttendance(userId: string, id: number, updates: Partial<InsertAttendance>): Promise<Attendance> {
-    const [updatedAttendance] = await db
-      .update(attendance)
-      .set(updates)
-      .where(and(eq(attendance.id, id), eq(attendance.userId, userId)))
-      .returning();
-    return updatedAttendance;
-  }
-
-  async deleteAttendance(userId: string, id: number): Promise<void> {
-    await db
-      .delete(attendance)
-      .where(and(eq(attendance.id, id), eq(attendance.userId, userId)));
-  }
-
-  async getAttendanceByStudent(userId: string, studentId: number): Promise<Attendance[]> {
-    return await db
-      .select()
-      .from(attendance)
-      .where(and(eq(attendance.userId, userId), eq(attendance.studentId, studentId)))
-      .orderBy(desc(attendance.date));
-  }
-
-  async getFieldTripStats(userId: string, studentId: number, year: number): Promise<number> {
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
-    
-    const records = await db
-      .select()
-      .from(attendance)
-      .where(
-        and(
-          eq(attendance.userId, userId),
-          eq(attendance.studentId, studentId),
-          eq(attendance.status, 'field_trip'),
-          gte(attendance.date, startDate),
-          lte(attendance.date, endDate)
-        )
-      );
-    
-    return records.length;
-  }
 
   // Notification operations
   async getNotifications(userId: string): Promise<Notification[]> {

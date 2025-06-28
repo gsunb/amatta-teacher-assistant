@@ -9,7 +9,6 @@ import {
   insertAssessmentSchema,
   insertClassSchema,
   insertStudentSchema,
-  insertAttendanceSchema,
 } from "@shared/schema";
 import { z } from "zod";
 

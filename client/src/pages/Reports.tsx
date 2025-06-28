@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, BarChart3, TrendingUp, Users, AlertTriangle, UserX, Calendar, FileText } from "lucide-react";
-import type { Student, Assessment, Record, Schedule, Attendance } from "@shared/schema";
+import type { Student, Assessment, Record, Schedule } from "@shared/schema";
 
 export default function Reports() {
   const [reportType, setReportType] = useState<string>("weekly");
