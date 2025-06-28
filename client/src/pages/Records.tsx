@@ -21,7 +21,7 @@ export default function Records() {
     description: "",
     date: "",
     severity: "medium",
-    studentId: undefined,
+    studentIds: [],
   });
 
   // Fetch records
@@ -51,7 +51,7 @@ export default function Records() {
         description: "",
         date: "",
         severity: "medium",
-        studentId: undefined,
+        studentIds: [],
       });
     },
     onError: () => {
@@ -131,7 +131,7 @@ export default function Records() {
         description: editingRecord.description,
         date: editingRecord.date,
         severity: editingRecord.severity,
-        studentId: editingRecord.studentId,
+        studentIds: editingRecord.studentIds,
       }
     });
   };
@@ -223,25 +223,57 @@ export default function Records() {
               </div>
 
               <div>
-                <Label>관련 학생</Label>
-                <Select
-                  value={newRecord.studentId?.toString() || "none"}
-                  onValueChange={(value) => 
-                    setNewRecord({ ...newRecord, studentId: value === "none" ? undefined : parseInt(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="학생을 선택하세요 (선택사항)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">학생 미지정</SelectItem>
-                    {students.map((student) => (
-                      <SelectItem key={student.id} value={student.id.toString()}>
-                        {student.studentNumber}번 {student.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>관련 학생 (다중 선택 가능)</Label>
+                <div className="space-y-2">
+                  <Select
+                    onValueChange={(value) => {
+                      const studentId = parseInt(value);
+                      if (!newRecord.studentIds?.includes(studentId)) {
+                        setNewRecord({ 
+                          ...newRecord, 
+                          studentIds: [...(newRecord.studentIds || []), studentId]
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="학생을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {students.filter(student => !newRecord.studentIds?.includes(student.id)).map((student) => (
+                        <SelectItem key={student.id} value={student.id.toString()}>
+                          {student.studentNumber}번 {student.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Selected students display */}
+                  {newRecord.studentIds && newRecord.studentIds.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {newRecord.studentIds.map((studentId) => {
+                        const student = students.find(s => s.id === studentId);
+                        return student ? (
+                          <div key={studentId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                            {student.studentNumber}번 {student.name}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewRecord({
+                                  ...newRecord,
+                                  studentIds: newRecord.studentIds?.filter(id => id !== studentId)
+                                });
+                              }}
+                              className="ml-1 text-blue-600 hover:text-blue-800"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
