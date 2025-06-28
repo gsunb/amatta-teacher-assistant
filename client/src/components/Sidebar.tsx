@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: '대시보드', href: '/', icon: Home },
   { name: '일정 관리', href: '/schedules', icon: Calendar },
-  { name: '출결 관리', href: '/attendance', icon: CalendarCheck },
   { name: '누가 기록', href: '/records', icon: FileText },
   { name: '학부모 소통', href: '/parent-communications', icon: MessageSquare },
   { name: '평가 관리', href: '/assessments', icon: ClipboardList },

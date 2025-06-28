@@ -236,55 +236,7 @@ async function parseCommandBasic(command: string, userId: string) {
       results.push({ type: 'parent_communication', data: communication });
     }
   }
-  // Enhanced attendance parsing for natural language commands
-  else if (lowerCommand.includes('체험학습') || lowerCommand.includes('지각') || lowerCommand.includes('조퇴') || lowerCommand.includes('결석')) {
-    const studentName = extractStudentName(command);
-    if (!studentName) {
-      return results;
-    }
 
-    // Get student to verify they exist
-    const students = await storage.getStudents(userId);
-    const student = students.find(s => s.name === studentName);
-    if (!student) {
-      return results;
-    }
-
-    const attendanceDetails = parseAttendanceDetails(command);
-    const classPeriod = parseClassPeriod(command);
-
-    // Handle date ranges for field trips
-    const dateRange = parseDateRange(command);
-    if (dateRange.length > 0) {
-      // Create multiple attendance records for date range
-      for (const date of dateRange) {
-        const attendanceData = {
-          studentId: student.id,
-          date: date,
-          status: attendanceDetails.status,
-          category: attendanceDetails.category,
-          reason: attendanceDetails.reason,
-          notes: `자연어 파싱: ${command}`
-        };
-        const attendance = await storage.createAttendance(userId, attendanceData);
-        results.push({ type: 'attendance', data: attendance });
-      }
-    } else {
-      // Single date attendance
-      const targetDate = parseNaturalLanguageDate(command);
-      const attendanceData = {
-        studentId: student.id,
-        date: targetDate,
-        status: attendanceDetails.status,
-        category: attendanceDetails.category,
-        reason: attendanceDetails.reason,
-        notes: `${classPeriod ? `${classPeriod} - ` : ''}자연어 파싱: ${command}`
-      };
-      
-      const attendance = await storage.createAttendance(userId, attendanceData);
-      results.push({ type: 'attendance', data: attendance });
-    }
-  }
   // Simple pattern matching for common commands
   else if (lowerCommand.includes('일정') || lowerCommand.includes('스케줄') || lowerCommand.includes('약속') || lowerCommand.includes('회의')) {
     // Extract basic schedule info
@@ -531,100 +483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Attendance routes
-  app.get("/api/attendance", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const date = req.query.date as string;
-      const attendanceRecords = await storage.getAttendance(userId, date);
-      res.json(attendanceRecords);
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
-      res.status(500).json({ message: "출결 기록을 불러오는데 실패했습니다." });
-    }
-  });
 
-  // Enhanced attendance parsing route
-  app.post("/api/attendance/parse", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { command } = req.body;
-      
-      if (!command || typeof command !== 'string') {
-        return res.status(400).json({ message: "명령어가 필요합니다." });
-      }
-      
-      const studentName = extractStudentName(command);
-      if (!studentName) {
-        return res.status(400).json({ message: "학생 이름을 찾을 수 없습니다." });
-      }
-      
-      // Get student to verify they exist
-      const students = await storage.getStudents(userId);
-      const student = students.find(s => s.name === studentName);
-      if (!student) {
-        return res.status(404).json({ message: `${studentName} 학생을 찾을 수 없습니다.` });
-      }
-      
-      const attendanceDetails = parseAttendanceDetails(command);
-      const classPeriod = parseClassPeriod(command);
-      
-      // Handle date ranges for field trips
-      const dateRange = parseDateRange(command);
-      if (dateRange.length > 0) {
-        // Create multiple attendance records for date range
-        const attendanceRecords = [];
-        for (const date of dateRange) {
-          const attendanceData = {
-            studentId: student.id,
-            date: date,
-            status: attendanceDetails.status,
-            category: attendanceDetails.category,
-            reason: attendanceDetails.reason,
-            notes: `자연어 파싱: ${command}`
-          };
-          const attendance = await storage.createAttendance(userId, attendanceData);
-          attendanceRecords.push(attendance);
-        }
-        return res.json({ 
-          message: `${studentName} 학생의 ${dateRange.length}일간 ${attendanceDetails.status} 기록이 생성되었습니다.`,
-          records: attendanceRecords 
-        });
-      } else {
-        // Single date attendance
-        const targetDate = parseNaturalLanguageDate(command);
-        const attendanceData = {
-          studentId: student.id,
-          date: targetDate,
-          status: attendanceDetails.status,
-          category: attendanceDetails.category,
-          reason: attendanceDetails.reason,
-          notes: `${classPeriod ? `${classPeriod} - ` : ''}자연어 파싱: ${command}`
-        };
-        
-        const attendance = await storage.createAttendance(userId, attendanceData);
-        return res.json({ 
-          message: `${studentName} 학생의 ${attendanceDetails.status} 기록이 생성되었습니다.`,
-          record: attendance 
-        });
-      }
-    } catch (error) {
-      console.error("Error parsing attendance:", error);
-      res.status(500).json({ message: "출결 파싱에 실패했습니다." });
-    }
-  });
-
-  app.post("/api/attendance", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const attendanceData = insertAttendanceSchema.parse(req.body);
-      const newAttendance = await storage.createAttendance(userId, attendanceData);
-      res.json(newAttendance);
-    } catch (error) {
-      console.error("Error creating attendance:", error);
-      res.status(500).json({ message: "출결 기록 생성에 실패했습니다." });
-    }
-  });
 
   // Assessment routes
   app.get("/api/assessments", isAuthenticated, async (req: any, res) => {

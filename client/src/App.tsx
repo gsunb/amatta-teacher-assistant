@@ -18,7 +18,6 @@ import Reports from "@/pages/Reports";
 import StudentReports from "@/pages/StudentReports";
 import Settings from "@/pages/Settings";
 import ParentCommunications from "@/pages/ParentCommunications";
-import Attendance from "@/pages/Attendance";
 import DataManagement from "@/pages/DataManagement";
 import Sidebar from "@/components/Sidebar";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -54,7 +53,6 @@ function Router() {
               <Route path="/reports" component={Reports} />
               <Route path="/student-reports" component={StudentReports} />
               <Route path="/parent-communications" component={ParentCommunications} />
-              <Route path="/attendance" component={Attendance} />
               <Route path="/data-management" component={DataManagement} />
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
