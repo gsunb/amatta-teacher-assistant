@@ -373,6 +373,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Attendance routes
+  app.get("/api/attendance", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const date = req.query.date as string;
+      const attendanceRecords = await storage.getAttendance(userId, date);
+      res.json(attendanceRecords);
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+      res.status(500).json({ message: "출결 기록을 불러오는데 실패했습니다." });
+    }
+  });
+
+  app.post("/api/attendance", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const attendanceData = insertAttendanceSchema.parse(req.body);
+      const newAttendance = await storage.createAttendance(userId, attendanceData);
+      res.json(newAttendance);
+    } catch (error) {
+      console.error("Error creating attendance:", error);
+      res.status(500).json({ message: "출결 기록 생성에 실패했습니다." });
+    }
+  });
+
   // Assessment routes
   app.get("/api/assessments", isAuthenticated, async (req: any, res) => {
     try {

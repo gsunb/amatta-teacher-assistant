@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Download, FileText, TrendingUp, Users, AlertTriangle } from "lucide-react";
-import type { Student, Assessment, Record, Schedule } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Download, BarChart3, TrendingUp, Users, AlertTriangle, UserX, Calendar, FileText } from "lucide-react";
+import type { Student, Assessment, Record, Schedule, Attendance } from "@shared/schema";
 
 export default function Reports() {
   const [reportType, setReportType] = useState<string>("weekly");
@@ -17,6 +18,10 @@ export default function Reports() {
 
   const { data: assessments = [] } = useQuery<Assessment[]>({
     queryKey: ["/api/assessments"],
+  });
+
+  const { data: attendance = [] } = useQuery<Attendance[]>({
+    queryKey: ["/api/attendance"],
   });
 
   const { data: records = [] } = useQuery<Record[]>({
@@ -139,7 +144,10 @@ ${students.map(s => {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">학급 보고서</h1>
+        <div className="flex items-center space-x-3">
+          <BarChart3 className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-gray-900">학급 통계</h1>
+        </div>
         <div className="flex space-x-2">
           <Select value={reportType} onValueChange={setReportType}>
             <SelectTrigger className="w-32">
@@ -222,24 +230,42 @@ ${students.map(s => {
 
       {/* Detailed Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Performers */}
+        {/* Attendance Alert Students */}
         <Card>
           <CardHeader>
-            <CardTitle>우수 학생 ({reportData.period})</CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              <span>출결 주의 학생</span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {(() => {
-              const studentPerformance = students.map(student => {
-                const studentAssessments = assessments.filter(a => a.studentName === student.name);
-                const avgScore = studentAssessments.length > 0 
-                  ? studentAssessments
-                      .filter(a => a.score && a.maxScore)
-                      .reduce((sum, a) => sum + ((a.score! / a.maxScore!) * 100), 0) / 
-                      studentAssessments.filter(a => a.score && a.maxScore).length
-                  : 0;
-                return { student, avgScore, assessmentCount: studentAssessments.length };
+              const currentYear = new Date().getFullYear();
+              const alertStudents = students.map(student => {
+                const studentAttendance = attendance.filter(a => a.studentId === student.id);
+                const fieldTripCount = studentAttendance.filter(a => 
+                  a.status === 'field_trip' && 
+                  new Date(a.date).getFullYear() === currentYear
+                ).length;
+                const lateCount = studentAttendance.filter(a => a.status === 'late').length;
+                const earlyLeaveCount = studentAttendance.filter(a => a.status === 'early_leave').length;
+                const absentCount = studentAttendance.filter(a => a.status === 'absent').length;
+                
+                const isFieldTripAlert = fieldTripCount >= 17; // 19일 중 17일 이상 사용
+                const isAttendanceAlert = (lateCount + earlyLeaveCount) >= 5 || absentCount >= 3;
+                
+                return { 
+                  student, 
+                  fieldTripCount, 
+                  lateCount, 
+                  earlyLeaveCount, 
+                  absentCount,
+                  isFieldTripAlert,
+                  isAttendanceAlert,
+                  totalIssues: lateCount + earlyLeaveCount + absentCount
+                };
               })
-              .filter(p => p.assessmentCount > 0)
+              .filter(s => s.isFieldTripAlert || s.isAttendanceAlert)
               .sort((a, b) => b.avgScore - a.avgScore)
               .slice(0, 5);
 
