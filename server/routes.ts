@@ -6,6 +6,7 @@ import {
   insertScheduleSchema,
   insertRecordSchema,
   insertAssessmentSchema,
+  insertClassSchema,
   insertStudentSchema,
 } from "@shared/schema";
 import { z } from "zod";
@@ -230,6 +231,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting assessment:", error);
       res.status(500).json({ message: "평가 삭제에 실패했습니다." });
+    }
+  });
+
+  // Class routes
+  app.get("/api/classes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const classes = await storage.getClasses(userId);
+      res.json(classes);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      res.status(500).json({ message: "학급을 불러오는데 실패했습니다." });
+    }
+  });
+
+  app.post("/api/classes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertClassSchema.parse(req.body);
+      const classData = await storage.createClass(userId, validatedData);
+      res.json(classData);
+    } catch (error) {
+      console.error("Error creating class:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "잘못된 입력 데이터입니다." });
+      } else {
+        res.status(500).json({ message: "학급 추가에 실패했습니다." });
+      }
+    }
+  });
+
+  app.patch("/api/classes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const classData = await storage.updateClass(userId, id, req.body);
+      res.json(classData);
+    } catch (error) {
+      console.error("Error updating class:", error);
+      res.status(500).json({ message: "학급 수정에 실패했습니다." });
+    }
+  });
+
+  app.delete("/api/classes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteClass(userId, id);
+      res.json({ message: "학급이 삭제되었습니다." });
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      res.status(500).json({ message: "학급 삭제에 실패했습니다." });
     }
   });
 

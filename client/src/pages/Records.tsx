@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, Trash2, AlertTriangle } from "lucide-react";
-import type { Record, InsertRecord } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Plus, Trash2, AlertTriangle, User, AlertCircle, Shield } from "lucide-react";
+import type { Record, InsertRecord, Student } from "@shared/schema";
 
 export default function Records() {
   const { toast } = useToast();
@@ -19,11 +20,17 @@ export default function Records() {
     description: "",
     date: "",
     severity: "medium",
+    studentId: undefined,
   });
 
   // Fetch records
   const { data: records = [], isLoading } = useQuery<Record[]>({
     queryKey: ["/api/records"],
+  });
+
+  // Fetch students for dropdown
+  const { data: students = [] } = useQuery<Student[]>({
+    queryKey: ["/api/students"],
   });
 
   // Create record mutation
