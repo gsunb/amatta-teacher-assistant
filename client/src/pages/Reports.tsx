@@ -20,9 +20,7 @@ export default function Reports() {
     queryKey: ["/api/assessments"],
   });
 
-  const { data: attendance = [] } = useQuery<Attendance[]>({
-    queryKey: ["/api/attendance"],
-  });
+
 
   const { data: records = [] } = useQuery<Record[]>({
     queryKey: ["/api/records"],
@@ -242,30 +240,35 @@ ${students.map(s => {
             {(() => {
               const currentYear = new Date().getFullYear();
               const alertStudents = students.map(student => {
-                const studentAttendance = attendance.filter(a => a.studentId === student.id);
-                const fieldTripCount = studentAttendance.filter(a => 
-                  a.status === 'field_trip' && 
-                  new Date(a.date).getFullYear() === currentYear
-                ).length;
-                const lateCount = studentAttendance.filter(a => a.status === 'late').length;
-                const earlyLeaveCount = studentAttendance.filter(a => a.status === 'early_leave').length;
-                const absentCount = studentAttendance.filter(a => a.status === 'absent').length;
+                // Check for academic performance issues
+                const studentAssessments = assessments.filter(a => a.studentName === student.name);
+                const averageScore = studentAssessments.length > 0 
+                  ? studentAssessments.reduce((sum, a) => sum + (a.score || 0), 0) / studentAssessments.length 
+                  : 0;
                 
-                const isFieldTripAlert = fieldTripCount >= 17; // 19일 중 17일 이상 사용
-                const isAttendanceAlert = (lateCount + earlyLeaveCount) >= 5 || absentCount >= 3;
+                // Check for behavioral concerns based on records
+                const studentRecords = records.filter(r => 
+                  r.studentIds?.includes(student.id) || 
+                  r.title.includes(student.name) ||
+                  r.description.includes(student.name)
+                );
+                const severeConcerns = studentRecords.filter(r => r.severity === 'high').length;
+                const totalConcerns = studentRecords.length;
+                
+                const isAcademicAlert = averageScore < 60 && studentAssessments.length > 0;
+                const isBehaviorAlert = severeConcerns >= 2 || totalConcerns >= 5;
                 
                 return { 
                   student, 
-                  fieldTripCount, 
-                  lateCount, 
-                  earlyLeaveCount, 
-                  absentCount,
-                  isFieldTripAlert,
-                  isAttendanceAlert,
-                  totalIssues: lateCount + earlyLeaveCount + absentCount
+                  averageScore,
+                  severeConcerns,
+                  totalConcerns,
+                  isAcademicAlert,
+                  isBehaviorAlert,
+                  totalIssues: severeConcerns + (isAcademicAlert ? 1 : 0)
                 };
               })
-              .filter(s => s.isFieldTripAlert || s.isAttendanceAlert)
+              .filter(s => s.isAcademicAlert || s.isBehaviorAlert)
               .sort((a, b) => b.totalIssues - a.totalIssues)
               .slice(0, 10);
 
@@ -281,23 +284,23 @@ ${students.map(s => {
                           </span>
                         </div>
                         <div className="flex space-x-1">
-                          {student.isFieldTripAlert && (
+                          {student.isAcademicAlert && (
                             <Badge variant="destructive" className="text-xs">
-                              체험학습 주의
+                              성적 주의
                             </Badge>
                           )}
-                          {student.isAttendanceAlert && (
+                          {student.isBehaviorAlert && (
                             <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                              출결 주의
+                              행동 주의
                             </Badge>
                           )}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                        <div>지각: {student.lateCount}회</div>
-                        <div>조퇴: {student.earlyLeaveCount}회</div>
-                        <div>결석: {student.absentCount}회</div>
-                        <div>체험학습: {student.fieldTripCount}/19일</div>
+                        <div>평균 성적: {student.averageScore.toFixed(1)}점</div>
+                        <div>심각한 문제: {student.severeConcerns}건</div>
+                        <div>전체 기록: {student.totalConcerns}건</div>
+                        <div>위험도: {student.totalIssues > 2 ? '높음' : student.totalIssues > 0 ? '보통' : '낮음'}</div>
                       </div>
                     </div>
                   ))}
