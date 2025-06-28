@@ -66,16 +66,16 @@ export default function Landing() {
             </Badge>
             
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              가장 빠르고 정확한
+              "아, 맞다!"가 줄어드는 순간,
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                AI 교육 도구
+                Amatta
               </span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              교사들의 업무를 혁신하는 AI 어시스턴트로 학급 관리, 성과 평가, 학부모 소통을 
-              <span className="font-semibold text-blue-600"> 한 곳에서 효율적으로</span> 처리하세요.
+              일정 관리, 누가기록, 평가 관리, 학부모 소통을 
+              <span className="font-semibold text-blue-600">자연어로 간단하게</span> 처리하는 교사 전용 AI 도구입니다.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">

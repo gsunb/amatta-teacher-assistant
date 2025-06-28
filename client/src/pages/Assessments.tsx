@@ -18,7 +18,7 @@ export default function Assessments() {
   const [viewMode, setViewMode] = useState<'dashboard' | 'by-task'>('dashboard');
   const [filterSubject, setFilterSubject] = useState("all");
   const [filterExam, setFilterExam] = useState("all");
-  const [sortBy, setSortBy] = useState<'score-high' | 'score-low' | 'number'>('score-high');
+  const [sortBy, setSortBy] = useState<'score-high' | 'score-low' | 'student-name'>('score-high');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch assessments and students
@@ -278,12 +278,8 @@ export default function Assessments() {
         const percentageA2 = a.score && a.maxScore ? (a.score / a.maxScore) * 100 : 0;
         const percentageB2 = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
         return percentageA2 - percentageB2;
-      case 'number':
-        const studentA = students.find((s: any) => s.name === a.studentName);
-        const studentB = students.find((s: any) => s.name === b.studentName);
-        const numberA = studentA ? parseInt(studentA.studentNumber) : 999;
-        const numberB = studentB ? parseInt(studentB.studentNumber) : 999;
-        return numberA - numberB;
+      case 'student-name':
+        return (a.studentName || '').localeCompare(b.studentName || '');
       default:
         return 0;
     }
@@ -363,6 +359,75 @@ export default function Assessments() {
             <Upload className="h-4 w-4 mr-2" />
             평가 업로드
           </Button>
+        </div>
+      </div>
+
+      {/* Filters and Sorting */}
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">과목 필터</label>
+            <Select value={filterSubject} onValueChange={setFilterSubject}>
+              <SelectTrigger>
+                <SelectValue placeholder="전체 과목" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 과목</SelectItem>
+                {uniqueSubjects.map((subject) => (
+                  <SelectItem key={subject} value={subject}>
+                    {subject}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">단원 필터</label>
+            <Select value={filterExam} onValueChange={setFilterExam}>
+              <SelectTrigger>
+                <SelectValue placeholder="전체 단원" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 단원</SelectItem>
+                {uniqueUnits.map((unit) => (
+                  <SelectItem key={unit} value={unit}>
+                    {unit}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">정렬 기준</label>
+            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="정렬 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="score-high">점수 높은 순</SelectItem>
+                <SelectItem value="score-low">점수 낮은 순</SelectItem>
+                <SelectItem value="student-name">학생 이름순</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">필터 초기화</label>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setFilterSubject("all");
+                setFilterExam("all");
+                setSortBy("score-high");
+              }}
+              className="w-full"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              초기화
+            </Button>
+          </div>
         </div>
       </div>
 

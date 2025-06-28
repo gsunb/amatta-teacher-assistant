@@ -196,16 +196,31 @@ async function parseCommandBasic(command: string, userId: string) {
 
 function extractStudentName(text: string): string {
   // Extract Korean names (2-3 characters followed by common name endings)
-  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테)/g;
+  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|님|학생)/g;
   const matches = text.match(namePattern);
-  return matches ? matches[0].replace(/\s|의|이|가|를|을|와|과|에게|한테/g, '') : '';
+  if (matches && matches.length > 0) {
+    return matches[0].replace(/\s|의|이|가|를|을|와|과|에게|한테|님|학생/g, '');
+  }
+  
+  // Fallback: try to find standalone Korean names
+  const standalonePattern = /([가-힣]{2,3})/g;
+  const standaloneMatches = text.match(standalonePattern);
+  return standaloneMatches ? standaloneMatches[0] : '';
 }
 
 function extractStudentNames(text: string): string[] {
-  // Extract multiple Korean names
-  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|가|이)/g;
+  // Extract multiple Korean names with improved patterns
+  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|님|학생|,|\s)/g;
   const matches = text.match(namePattern);
-  return matches ? matches.map(match => match.replace(/\s|의|이|가|를|을|와|과|에게|한테/g, '')) : [];
+  if (matches && matches.length > 0) {
+    const cleanedNames = matches.map(match => match.replace(/\s|의|이|가|를|을|와|과|에게|한테|님|학생|,/g, ''));
+    return Array.from(new Set(cleanedNames));
+  }
+  
+  // Fallback: try to find standalone Korean names
+  const standalonePattern = /([가-힣]{2,3})/g;
+  const standaloneMatches = text.match(standalonePattern);
+  return standaloneMatches ? Array.from(new Set(standaloneMatches)) : [];
 }
 
 function determineSeverity(text: string): "low" | "medium" | "high" {
