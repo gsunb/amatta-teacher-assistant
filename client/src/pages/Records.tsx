@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Trash2, AlertTriangle, User, AlertCircle, Shield } from "lucide-react";
+import { FileText, Plus, Trash2, AlertTriangle, User, AlertCircle, Shield, Edit2 } from "lucide-react";
 import type { Record, InsertRecord, Student } from "@shared/schema";
 
 export default function Records() {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Record | null>(null);
   const [newRecord, setNewRecord] = useState<InsertRecord>({
     title: "",
     description: "",
@@ -62,6 +63,28 @@ export default function Records() {
     },
   });
 
+  // Update record mutation
+  const updateRecordMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertRecord> }) => {
+      return await apiRequest("PATCH", `/api/records/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+      toast({
+        title: "성공",
+        description: "기록이 수정되었습니다.",
+      });
+      setEditingRecord(null);
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "기록 수정에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete record mutation
   const deleteRecordMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -93,6 +116,24 @@ export default function Records() {
       return;
     }
     createRecordMutation.mutate(newRecord);
+  };
+
+  const handleEdit = (record: Record) => {
+    setEditingRecord(record);
+  };
+
+  const handleUpdateSubmit = () => {
+    if (!editingRecord) return;
+    updateRecordMutation.mutate({
+      id: editingRecord.id,
+      data: {
+        title: editingRecord.title,
+        description: editingRecord.description,
+        date: editingRecord.date,
+        severity: editingRecord.severity,
+        studentId: editingRecord.studentId,
+      }
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -184,16 +225,16 @@ export default function Records() {
               <div>
                 <Label>관련 학생</Label>
                 <Select
-                  value={newRecord.studentId?.toString() || ""}
+                  value={newRecord.studentId?.toString() || "none"}
                   onValueChange={(value) => 
-                    setNewRecord({ ...newRecord, studentId: value ? parseInt(value) : undefined })
+                    setNewRecord({ ...newRecord, studentId: value === "none" ? undefined : parseInt(value) })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="학생을 선택하세요 (선택사항)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">학생 미지정</SelectItem>
+                    <SelectItem value="none">학생 미지정</SelectItem>
                     {students.map((student) => (
                       <SelectItem key={student.id} value={student.id.toString()}>
                         {student.studentNumber}번 {student.name}
