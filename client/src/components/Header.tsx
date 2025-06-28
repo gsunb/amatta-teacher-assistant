@@ -12,9 +12,9 @@ export default function Header() {
   const navigation = [
     { name: "홈", href: "/" },
     { name: "일정 관리", href: "/schedules" },
-    { name: "사건 기록", href: "/records" },
+    { name: "누가 기록", href: "/records" },
     { name: "성과 평가", href: "/assessments" },
-    { name: "학생 명단", href: "/students" },
+    { name: "학급 관리", href: "/classes" },
     { name: "보고서", href: "/reports" },
     { name: "학부모 소통", href: "/parent-communications" },
     { name: "알림", href: "/notifications" },

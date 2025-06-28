@@ -10,7 +10,7 @@ import Home from "@/pages/Home";
 import Schedules from "@/pages/Schedules";
 import Records from "@/pages/Records";
 import Assessments from "@/pages/Assessments";
-import Students from "@/pages/Students";
+import Classes from "@/pages/Classes";
 import StudentDetail from "@/pages/StudentDetail";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
@@ -41,7 +41,7 @@ function Router() {
             <Route path="/records" component={Records} />
             <Route path="/assessments" component={Assessments} />
             <Route path="/students/:studentName" component={StudentDetail} />
-            <Route path="/students" component={Students} />
+            <Route path="/classes" component={Classes} />
             <Route path="/reports" component={Reports} />
             <Route path="/parent-communications" component={ParentCommunications} />
             <Route path="/notifications" component={Notifications} />

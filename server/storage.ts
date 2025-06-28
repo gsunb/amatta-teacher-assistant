@@ -53,9 +53,17 @@ export interface IStorage {
   createAssessment(userId: string, assessment: InsertAssessment): Promise<Assessment>;
   deleteAssessment(userId: string, id: number): Promise<void>;
 
+  // Class operations
+  getClasses(userId: string): Promise<Class[]>;
+  createClass(userId: string, classData: InsertClass): Promise<Class>;
+  updateClass(userId: string, id: number, updates: Partial<InsertClass>): Promise<Class>;
+  deleteClass(userId: string, id: number): Promise<void>;
+
   // Student operations
   getStudents(userId: string): Promise<Student[]>;
+  getStudentsByClass(userId: string, classId: number): Promise<Student[]>;
   createStudent(userId: string, student: InsertStudent): Promise<Student>;
+  updateStudent(userId: string, id: number, updates: Partial<InsertStudent>): Promise<Student>;
   deleteStudent(userId: string, id: number): Promise<void>;
   createMultipleStudents(userId: string, students: InsertStudent[]): Promise<Student[]>;
   updateStudentRiskLevel(userId: string, studentName: string, riskLevel: string): Promise<void>;
@@ -204,6 +212,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Student operations
+  // Class operations
+  async getClasses(userId: string): Promise<Class[]> {
+    return await db
+      .select()
+      .from(classes)
+      .where(eq(classes.userId, userId))
+      .orderBy(desc(classes.createdAt));
+  }
+
+  async createClass(userId: string, classData: InsertClass): Promise<Class> {
+    const [newClass] = await db
+      .insert(classes)
+      .values({ ...classData, userId })
+      .returning();
+    return newClass;
+  }
+
+  async updateClass(userId: string, id: number, updates: Partial<InsertClass>): Promise<Class> {
+    const [updatedClass] = await db
+      .update(classes)
+      .set(updates)
+      .where(and(eq(classes.id, id), eq(classes.userId, userId)))
+      .returning();
+    return updatedClass;
+  }
+
+  async deleteClass(userId: string, id: number): Promise<void> {
+    await db
+      .delete(classes)
+      .where(and(eq(classes.id, id), eq(classes.userId, userId)));
+  }
+
+  // Student operations
   async getStudents(userId: string): Promise<Student[]> {
     return await db
       .select()
@@ -212,12 +253,29 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(students.createdAt));
   }
 
+  async getStudentsByClass(userId: string, classId: number): Promise<Student[]> {
+    return await db
+      .select()
+      .from(students)
+      .where(and(eq(students.userId, userId), eq(students.classId, classId)))
+      .orderBy(asc(students.studentNumber));
+  }
+
   async createStudent(userId: string, student: InsertStudent): Promise<Student> {
     const [newStudent] = await db
       .insert(students)
       .values({ ...student, userId })
       .returning();
     return newStudent;
+  }
+
+  async updateStudent(userId: string, id: number, updates: Partial<InsertStudent>): Promise<Student> {
+    const [updatedStudent] = await db
+      .update(students)
+      .set(updates)
+      .where(and(eq(students.id, id), eq(students.userId, userId)))
+      .returning();
+    return updatedStudent;
   }
 
   async deleteStudent(userId: string, id: number): Promise<void> {
