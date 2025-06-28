@@ -108,62 +108,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSchedule(userId: string, schedule: InsertSchedule): Promise<Schedule> {
-    // Handle recurring schedules
-    if (schedule.isRecurring && schedule.recurringType && schedule.recurringEndDate) {
-      const scheduleData = { ...schedule, userId };
-      const createdSchedules = [];
-      
-      const startDate = new Date(schedule.date);
-      const endDate = new Date(schedule.recurringEndDate);
-      let currentDate = new Date(startDate);
-      
-      while (currentDate <= endDate) {
-        const [newSchedule] = await db
-          .insert(schedules)
-          .values({ 
-            ...scheduleData, 
-            date: currentDate.toISOString().split('T')[0],
-            recurringParentId: createdSchedules.length === 0 ? null : createdSchedules[0].id
-          })
-          .returning();
-        
-        createdSchedules.push(newSchedule);
-        
-        // Increment date based on recurring type
-        switch (schedule.recurringType) {
-          case 'daily':
-            currentDate.setDate(currentDate.getDate() + 1);
-            break;
-          case 'weekly':
-            currentDate.setDate(currentDate.getDate() + 7);
-            break;
-          case 'monthly':
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            break;
-        }
-      }
-      
-      // Update parent ID for all schedules after first one
-      if (createdSchedules.length > 1) {
-        await db
-          .update(schedules)
-          .set({ recurringParentId: createdSchedules[0].id })
-          .where(
-            and(
-              eq(schedules.userId, userId),
-              inArray(schedules.id, createdSchedules.slice(1).map(s => s.id))
-            )
-          );
-      }
-      
-      return createdSchedules[0];
-    } else {
-      const [newSchedule] = await db
-        .insert(schedules)
-        .values({ ...schedule, userId })
-        .returning();
-      return newSchedule;
-    }
+    const [newSchedule] = await db
+      .insert(schedules)
+      .values({ ...schedule, userId })
+      .returning();
+    return newSchedule;
   }
 
   async updateSchedule(userId: string, id: number, updates: Partial<InsertSchedule>): Promise<Schedule> {
@@ -199,12 +148,10 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(schedules.userId, userId),
-          eq(schedules.isCompleted, false),
-          gte(schedules.date, today.toISOString().split('T')[0]),
-          lte(schedules.date, futureDate.toISOString().split('T')[0])
+          eq(schedules.isCompleted, false)
         )
       )
-      .orderBy(asc(schedules.date), asc(schedules.time));
+      .orderBy(desc(schedules.date));
   }
 
   // Record operations

@@ -24,9 +24,21 @@ export default function Home() {
   const { toast } = useToast();
   const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
 
-  // Fetch today's schedules
-  const { data: schedules = [] } = useQuery<Schedule[]>({
-    queryKey: ["/api/schedules"],
+  // Fetch upcoming schedules (7 days)
+  const { data: upcomingSchedules = [] } = useQuery<Schedule[]>({
+    queryKey: ["/api/schedules/upcoming"],
+    onError: (error: Error) => {
+      if (error.message.includes("401")) {
+        toast({
+          title: "인증 오류",
+          description: "다시 로그인해주세요.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+      }
+    },
   });
 
   // Fetch recent records
@@ -114,9 +126,9 @@ export default function Home() {
     }
   };
 
-  // Filter today's schedules
+  // Filter today's schedules from upcoming schedules
   const today = new Date().toISOString().split('T')[0];
-  const todaySchedules = schedules.filter(schedule => schedule.date === today);
+  const todaySchedules = upcomingSchedules.filter((schedule: Schedule) => schedule.date === today);
 
   // Get recent records (last 3)
   const recentRecords = records.slice(0, 3);
@@ -183,7 +195,7 @@ export default function Home() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Calendar className="h-6 w-6 text-blue-600" />
                   </div>
-                  <span className="text-sm text-gray-500">총 {schedules.length}개</span>
+                  <span className="text-sm text-gray-500">총 {upcomingSchedules.length}개</span>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">일정 관리</h3>
                 <p className="text-sm text-gray-600">수업, 회의, 상담 일정을 관리하세요</p>
