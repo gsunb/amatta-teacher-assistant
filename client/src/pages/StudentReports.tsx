@@ -338,16 +338,16 @@ export default function StudentReports() {
                                 <div className="flex-1">
                                   <div className="flex items-center space-x-2 mb-2">
                                     <h3 className="font-medium">{comm.communicationType}</h3>
-                                    <Badge variant={comm.completed ? "default" : "secondary"}>
-                                      {comm.completed ? "완료" : "예정"}
+                                    <Badge variant={comm.followUpCompleted ? "default" : "secondary"}>
+                                      {comm.followUpCompleted ? "완료" : "진행중"}
                                     </Badge>
                                   </div>
                                   <p className="text-sm text-gray-600 mb-1">
                                     <strong>목적:</strong> {comm.purpose}
                                   </p>
-                                  {comm.outcome && (
+                                  {comm.summary && (
                                     <p className="text-sm text-gray-600">
-                                      <strong>결과:</strong> {comm.outcome}
+                                      <strong>요약:</strong> {comm.summary}
                                     </p>
                                   )}
                                 </div>

@@ -16,6 +16,7 @@ export default function Header() {
     { name: "성과 평가", href: "/assessments" },
     { name: "학급 관리", href: "/classes" },
     { name: "보고서", href: "/reports" },
+    { name: "학생 보고서", href: "/student-reports" },
     { name: "학부모 소통", href: "/parent-communications" },
     { name: "알림", href: "/notifications" },
     { name: "데이터 관리", href: "/data-management" },

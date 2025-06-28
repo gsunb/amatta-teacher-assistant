@@ -44,6 +44,7 @@ function Router() {
             <Route path="/students/:studentName" component={StudentDetail} />
             <Route path="/classes" component={Classes} />
             <Route path="/reports" component={Reports} />
+            <Route path="/student-reports" component={StudentReports} />
             <Route path="/parent-communications" component={ParentCommunications} />
             <Route path="/notifications" component={Notifications} />
             <Route path="/data-management" component={DataManagement} />

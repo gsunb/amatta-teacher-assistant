@@ -16,10 +16,43 @@ async function parseCommandBasic(command: string, userId: string) {
   const results = [];
   const lowerCommand = command.toLowerCase();
   
+  // Improved consultation parsing - distinguish future vs past
+  if (lowerCommand.includes('상담') || lowerCommand.includes('학부모')) {
+    // Check for future indicators
+    const futureIndicators = ['예정', '계획', '할 예정', '예약', '일정', '내일', '다음', '~일', '~요일'];
+    const pastIndicators = ['했음', '완료', '진행했음', '이야기했음', '약속했음', '협조한다고', '진행', '가격하거나', '잡아당기는'];
+    
+    const hasFutureIndicator = futureIndicators.some(indicator => lowerCommand.includes(indicator));
+    const hasPastIndicator = pastIndicators.some(indicator => lowerCommand.includes(indicator));
+    
+    if (hasFutureIndicator && !hasPastIndicator) {
+      // Future consultation -> Schedule
+      const today = new Date().toISOString().split('T')[0];
+      const schedule = await storage.createSchedule(userId, {
+        title: command,
+        date: today,
+        description: `자동 생성됨: ${command}`
+      });
+      results.push({ type: 'schedule', data: schedule });
+    } else if (hasPastIndicator || (!hasFutureIndicator && !hasPastIndicator)) {
+      // Past consultation or unclear -> Parent Communication
+      const studentName = extractStudentName(command);
+      const communication = await storage.createParentCommunication(userId, {
+        studentName: studentName || '미지정',
+        communicationType: '상담',
+        purpose: command,
+        summary: command,
+        date: new Date().toISOString().split('T')[0],
+        followUpRequired: false,
+        followUpCompleted: true
+      });
+      results.push({ type: 'parent_communication', data: communication });
+    }
+  }
   // Simple pattern matching for common commands
-  if (lowerCommand.includes('일정') || lowerCommand.includes('스케줄') || lowerCommand.includes('약속')) {
+  else if (lowerCommand.includes('일정') || lowerCommand.includes('스케줄') || lowerCommand.includes('약속') || lowerCommand.includes('회의')) {
     // Extract basic schedule info
-    const titleMatch = command.match(/(.+?)\s*(일정|스케줄|약속)/);
+    const titleMatch = command.match(/(.+?)\s*(일정|스케줄|약속|회의)/);
     const title = titleMatch ? titleMatch[1].trim() : '새로운 일정';
     
     // Default to today if no date specified
@@ -34,21 +67,53 @@ async function parseCommandBasic(command: string, userId: string) {
     });
     results.push({ type: 'schedule', data: schedule });
   }
-  
-  if (lowerCommand.includes('기록') || lowerCommand.includes('사건') || lowerCommand.includes('문제')) {
+  else if (lowerCommand.includes('기록') || lowerCommand.includes('사건') || lowerCommand.includes('문제') || lowerCommand.includes('생활지도')) {
     const title = command.length > 20 ? command.substring(0, 20) + '...' : command;
     const today = new Date().toISOString().split('T')[0];
+    
+    // Extract student names and IDs for multi-student records
+    const studentNames = extractStudentNames(command);
+    const students = await storage.getStudents(userId);
+    const studentIds = studentNames.map(name => {
+      const student = students.find(s => s.name === name);
+      return student ? student.id : null;
+    }).filter(id => id !== null);
     
     const record = await storage.createRecord(userId, {
       title,
       description: command,
       date: today,
-      severity: 'medium'
+      severity: determineSeverity(command),
+      studentIds: studentIds.length > 0 ? studentIds : null
     });
     results.push({ type: 'record', data: record });
   }
   
   return results;
+}
+
+function extractStudentName(text: string): string {
+  // Extract Korean names (2-3 characters followed by common name endings)
+  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테)/g;
+  const matches = text.match(namePattern);
+  return matches ? matches[0].replace(/\s|의|이|가|를|을|와|과|에게|한테/g, '') : '';
+}
+
+function extractStudentNames(text: string): string[] {
+  // Extract multiple Korean names
+  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|가|이)/g;
+  const matches = text.match(namePattern);
+  return matches ? matches.map(match => match.replace(/\s|의|이|가|를|을|와|과|에게|한테/g, '')) : [];
+}
+
+function determineSeverity(text: string): string {
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes('폭력') || lowerText.includes('위험') || lowerText.includes('심각') || lowerText.includes('가격') || lowerText.includes('잡아당기')) {
+    return 'high';
+  } else if (lowerText.includes('주의') || lowerText.includes('문제') || lowerText.includes('생활지도')) {
+    return 'medium';
+  }
+  return 'low';
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
