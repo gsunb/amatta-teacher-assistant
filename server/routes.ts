@@ -13,10 +13,30 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
-// Date parsing function for natural language expressions
+// Enhanced date parsing function for natural language expressions
 function parseNaturalLanguageDate(text: string): string {
   const today = new Date();
   const lowerText = text.toLowerCase();
+  
+  // Handle date ranges like "7/1~7/4" or "7/1-7/4"
+  const dateRangeMatch = text.match(/(\d{1,2})\/(\d{1,2})\s*[~-]\s*(\d{1,2})\/(\d{1,2})/);
+  if (dateRangeMatch) {
+    const startMonth = parseInt(dateRangeMatch[1]);
+    const startDay = parseInt(dateRangeMatch[2]);
+    const year = today.getFullYear();
+    const startDate = new Date(year, startMonth - 1, startDay);
+    return startDate.toISOString().split('T')[0];
+  }
+  
+  // Handle single date format like "7/1"
+  const singleDateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
+  if (singleDateMatch) {
+    const month = parseInt(singleDateMatch[1]);
+    const day = parseInt(singleDateMatch[2]);
+    const year = today.getFullYear();
+    const targetDate = new Date(year, month - 1, day);
+    return targetDate.toISOString().split('T')[0];
+  }
   
   // Handle relative day references
   if (lowerText.includes('오늘')) {
@@ -86,6 +106,95 @@ function parseNaturalLanguageDate(text: string): string {
   
   // Default to today if no pattern matches
   return today.toISOString().split('T')[0];
+}
+
+// Parse date ranges for field trip attendance
+function parseDateRange(text: string): string[] {
+  const dates = [];
+  const today = new Date();
+  
+  // Handle date ranges like "7/1~7/4" or "7/1-7/4"
+  const dateRangeMatch = text.match(/(\d{1,2})\/(\d{1,2})\s*[~-]\s*(\d{1,2})\/(\d{1,2})/);
+  if (dateRangeMatch) {
+    const startMonth = parseInt(dateRangeMatch[1]);
+    const startDay = parseInt(dateRangeMatch[2]);
+    const endMonth = parseInt(dateRangeMatch[3]);
+    const endDay = parseInt(dateRangeMatch[4]);
+    const year = today.getFullYear();
+    
+    const startDate = new Date(year, startMonth - 1, startDay);
+    const endDate = new Date(year, endMonth - 1, endDay);
+    
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      dates.push(currentDate.toISOString().split('T')[0]);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  }
+  
+  return dates;
+}
+
+// Parse class period from attendance text
+function parseClassPeriod(text: string): string | null {
+  // Handle patterns like "1교시", "5교시부터", "3교시까지"
+  const periodMatch = text.match(/(\d{1,2})교시/);
+  if (periodMatch) {
+    return periodMatch[1] + "교시";
+  }
+  return null;
+}
+
+// Parse attendance type and reason with correct schema types
+function parseAttendanceDetails(text: string): { 
+  status: "present" | "late" | "early_leave" | "absent" | "field_trip",
+  category: "field_trip" | "illness" | "unexcused" | "excused" | null,
+  reason: string 
+} {
+  const lowerText = text.toLowerCase();
+  
+  // Check for field trip (체험학습)
+  if (lowerText.includes('체험학습')) {
+    return { status: 'field_trip', category: 'field_trip', reason: '체험학습' };
+  }
+  
+  // Check for tardiness (지각)
+  if (lowerText.includes('지각')) {
+    if (lowerText.includes('배아파') || lowerText.includes('복통')) {
+      return { status: 'late', category: 'illness', reason: '복통' };
+    }
+    if (lowerText.includes('머리아파') || lowerText.includes('두통')) {
+      return { status: 'late', category: 'illness', reason: '두통' };
+    }
+    if (lowerText.includes('감기') || lowerText.includes('몸살')) {
+      return { status: 'late', category: 'illness', reason: '감기' };
+    }
+    return { status: 'late', category: 'unexcused', reason: '개인사정' };
+  }
+  
+  // Check for early departure (조퇴)
+  if (lowerText.includes('조퇴')) {
+    if (lowerText.includes('배아파') || lowerText.includes('복통')) {
+      return { status: 'early_leave', category: 'illness', reason: '복통' };
+    }
+    if (lowerText.includes('머리아파') || lowerText.includes('두통')) {
+      return { status: 'early_leave', category: 'illness', reason: '두통' };
+    }
+    if (lowerText.includes('감기') || lowerText.includes('몸살')) {
+      return { status: 'early_leave', category: 'illness', reason: '감기' };
+    }
+    return { status: 'early_leave', category: 'unexcused', reason: '개인사정' };
+  }
+  
+  // Check for absence (결석)
+  if (lowerText.includes('결석') || lowerText.includes('안 왔') || lowerText.includes('없었')) {
+    if (lowerText.includes('병원') || lowerText.includes('아파')) {
+      return { status: 'absent', category: 'illness', reason: '질병' };
+    }
+    return { status: 'absent', category: 'unexcused', reason: '개인사정' };
+  }
+  
+  return { status: 'present', category: null, reason: '' };
 }
 
 // Basic command parsing function for fallback when no API key is provided
@@ -383,6 +492,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching attendance:", error);
       res.status(500).json({ message: "출결 기록을 불러오는데 실패했습니다." });
+    }
+  });
+
+  // Enhanced attendance parsing route
+  app.post("/api/attendance/parse", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { command } = req.body;
+      
+      if (!command || typeof command !== 'string') {
+        return res.status(400).json({ message: "명령어가 필요합니다." });
+      }
+      
+      const studentName = extractStudentName(command);
+      if (!studentName) {
+        return res.status(400).json({ message: "학생 이름을 찾을 수 없습니다." });
+      }
+      
+      // Get student to verify they exist
+      const students = await storage.getStudents(userId);
+      const student = students.find(s => s.name === studentName);
+      if (!student) {
+        return res.status(404).json({ message: `${studentName} 학생을 찾을 수 없습니다.` });
+      }
+      
+      const attendanceDetails = parseAttendanceDetails(command);
+      const classPeriod = parseClassPeriod(command);
+      
+      // Handle date ranges for field trips
+      const dateRange = parseDateRange(command);
+      if (dateRange.length > 0) {
+        // Create multiple attendance records for date range
+        const attendanceRecords = [];
+        for (const date of dateRange) {
+          const attendanceData = {
+            studentId: student.id,
+            date: date,
+            status: attendanceDetails.status,
+            category: attendanceDetails.category,
+            reason: attendanceDetails.reason,
+            notes: `자연어 파싱: ${command}`
+          };
+          const attendance = await storage.createAttendance(userId, attendanceData);
+          attendanceRecords.push(attendance);
+        }
+        return res.json({ 
+          message: `${studentName} 학생의 ${dateRange.length}일간 ${attendanceDetails.status} 기록이 생성되었습니다.`,
+          records: attendanceRecords 
+        });
+      } else {
+        // Single date attendance
+        const targetDate = parseNaturalLanguageDate(command);
+        const attendanceData = {
+          studentId: student.id,
+          date: targetDate,
+          status: attendanceDetails.status,
+          category: attendanceDetails.category,
+          reason: attendanceDetails.reason,
+          notes: `${classPeriod ? `${classPeriod} - ` : ''}자연어 파싱: ${command}`
+        };
+        
+        const attendance = await storage.createAttendance(userId, attendanceData);
+        return res.json({ 
+          message: `${studentName} 학생의 ${attendanceDetails.status} 기록이 생성되었습니다.`,
+          record: attendance 
+        });
+      }
+    } catch (error) {
+      console.error("Error parsing attendance:", error);
+      res.status(500).json({ message: "출결 파싱에 실패했습니다." });
     }
   });
 
