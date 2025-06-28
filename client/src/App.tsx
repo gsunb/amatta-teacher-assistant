@@ -16,9 +16,9 @@ import Reports from "@/pages/Reports";
 import StudentReports from "@/pages/StudentReports";
 import Settings from "@/pages/Settings";
 import ParentCommunications from "@/pages/ParentCommunications";
-import Notifications from "@/pages/Notifications";
+import Attendance from "@/pages/Attendance";
 import DataManagement from "@/pages/DataManagement";
-import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ChatBot from "@/components/ChatBot";
 
@@ -30,30 +30,32 @@ function Router() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {isAuthenticated && <Header />}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Switch>
         {!isAuthenticated ? (
           <Route path="/" component={Landing} />
         ) : (
           <>
-            <Route path="/" component={Home} />
-            <Route path="/schedules" component={Schedules} />
-            <Route path="/records" component={Records} />
-            <Route path="/assessments" component={Assessments} />
-            <Route path="/students/:studentName" component={StudentDetail} />
-            <Route path="/classes" component={Classes} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/student-reports" component={StudentReports} />
-            <Route path="/parent-communications" component={ParentCommunications} />
-            <Route path="/notifications" component={Notifications} />
-            <Route path="/data-management" component={DataManagement} />
-            <Route path="/settings" component={Settings} />
+            <Sidebar />
+            <div className="md:pl-64">
+              <Route path="/" component={Home} />
+              <Route path="/schedules" component={Schedules} />
+              <Route path="/records" component={Records} />
+              <Route path="/assessments" component={Assessments} />
+              <Route path="/students/:studentName" component={StudentDetail} />
+              <Route path="/classes" component={Classes} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/student-reports" component={StudentReports} />
+              <Route path="/parent-communications" component={ParentCommunications} />
+              <Route path="/attendance" component={Attendance} />
+              <Route path="/data-management" component={DataManagement} />
+              <Route path="/settings" component={Settings} />
+            </div>
+            <ChatBot />
           </>
         )}
         <Route component={NotFound} />
       </Switch>
-      {isAuthenticated && <ChatBot />}
     </div>
   );
 }
