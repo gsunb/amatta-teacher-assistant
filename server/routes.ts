@@ -471,9 +471,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             case 'student':
               const student = await storage.createStudent(userId, {
                 name: action.data.name,
-                studentNumber: action.data.studentNumber || undefined,
-                grade: action.data.grade || undefined,
-                class: action.data.class || undefined,
+                studentNumber: action.data.studentNumber || "",
+                classId: action.data.classId || 1,
               });
               results.push({ type: 'student', data: student });
               break;

@@ -50,6 +50,7 @@ export default function Records() {
         description: "",
         date: "",
         severity: "medium",
+        studentId: undefined,
       });
     },
     onError: () => {
@@ -103,30 +104,37 @@ export default function Records() {
     });
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | null) => {
     switch (severity) {
-      case 'high':
-        return 'border-red-400 bg-red-50';
-      case 'medium':
-        return 'border-yellow-400 bg-yellow-50';
-      case 'low':
-        return 'border-green-400 bg-green-50';
-      default:
-        return 'border-gray-400 bg-gray-50';
+      case 'high': return 'border-red-500';
+      case 'medium': return 'border-yellow-500';
+      case 'low': return 'border-green-500';
+      default: return 'border-gray-300';
     }
   };
 
-  const getSeverityLabel = (severity: string) => {
+  const getSeverityLabel = (severity: string | null) => {
     switch (severity) {
-      case 'high':
-        return '높음';
-      case 'medium':
-        return '보통';
-      case 'low':
-        return '낮음';
-      default:
-        return '보통';
+      case 'high': return '높음';
+      case 'medium': return '보통';
+      case 'low': return '낮음';
+      default: return '보통';
     }
+  };
+
+  const getSeverityIcon = (severity: string | null) => {
+    switch (severity) {
+      case 'high': return <AlertTriangle className="h-4 w-4" />;
+      case 'medium': return <AlertCircle className="h-4 w-4" />;
+      case 'low': return <Shield className="h-4 w-4" />;
+      default: return <AlertCircle className="h-4 w-4" />;
+    }
+  };
+
+  const getStudentName = (studentId: number | null) => {
+    if (!studentId) return "학생 미지정";
+    const student = students.find(s => s.id === studentId);
+    return student ? `${student.studentNumber}번 ${student.name}` : "학생 미지정";
   };
 
   if (isLoading) {
@@ -147,55 +155,77 @@ export default function Records() {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">사건 기록</h1>
-        <Button onClick={() => setIsAdding(!isAdding)}>
+        <div className="flex items-center space-x-3">
+          <FileText className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-gray-900">누가 기록</h1>
+        </div>
+        <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
           기록 추가
         </Button>
       </div>
 
-      {/* Add Record Form */}
-      {isAdding && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>새 기록 추가</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">제목 *</Label>
-              <Input
-                id="title"
-                value={newRecord.title}
-                onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
-                placeholder="예: 김○○ 학생 지각"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="description">설명 *</Label>
-              <Textarea
-                id="description"
-                value={newRecord.description}
-                onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
-                placeholder="상세한 상황을 기록하세요"
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-6">
+        {isAdding && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-blue-800">새 기록 추가</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="date">날짜 *</Label>
+                <Label>제목 *</Label>
                 <Input
-                  id="date"
+                  placeholder="기록 제목을 입력하세요"
+                  value={newRecord.title}
+                  onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label>관련 학생</Label>
+                <Select
+                  value={newRecord.studentId?.toString() || ""}
+                  onValueChange={(value) => 
+                    setNewRecord({ ...newRecord, studentId: value ? parseInt(value) : undefined })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="학생을 선택하세요 (선택사항)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">학생 미지정</SelectItem>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.studentNumber}번 {student.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>상세 내용 *</Label>
+                <Textarea
+                  placeholder="상세 내용을 입력하세요"
+                  value={newRecord.description}
+                  onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label>날짜 *</Label>
+                <Input
                   type="date"
                   value={newRecord.date}
                   onChange={(e) => setNewRecord({ ...newRecord, date: e.target.value })}
                 />
               </div>
+
               <div>
                 <Label>중요도</Label>
                 <Select
-                  value={newRecord.severity}
+                  value={newRecord.severity || "medium"}
                   onValueChange={(value: "low" | "medium" | "high") => 
                     setNewRecord({ ...newRecord, severity: value })
                   }
@@ -210,25 +240,26 @@ export default function Records() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="flex space-x-2">
-              <Button 
-                onClick={handleSubmit}
-                disabled={createRecordMutation.isPending}
-              >
-                {createRecordMutation.isPending ? "추가 중..." : "추가"}
-              </Button>
-              <Button variant="outline" onClick={() => setIsAdding(false)}>
-                취소
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={createRecordMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {createRecordMutation.isPending ? "추가 중..." : "기록 추가"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAdding(false)}
+                >
+                  취소
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Records List */}
-      <div className="space-y-4">
         {records.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -243,22 +274,35 @@ export default function Records() {
           </Card>
         ) : (
           records.map((record) => (
-            <Card key={record.id} className={`hover:shadow-md transition-shadow border-l-4 ${getSeverityColor(record.severity)}`}>
+            <Card key={record.id} className={`hover:shadow-md transition-shadow border-l-4 ${getSeverityColor(record.severity || "medium")}`}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {record.title}
                       </h3>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        record.severity === 'high' ? 'bg-red-100 text-red-800' :
-                        record.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {getSeverityLabel(record.severity)}
-                      </span>
+                      <Badge 
+                        variant="secondary" 
+                        className={`flex items-center space-x-1 ${
+                          record.severity === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
+                          record.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                          'bg-green-100 text-green-800 border-green-200'
+                        }`}
+                      >
+                        {getSeverityIcon(record.severity)}
+                        <span>{getSeverityLabel(record.severity)}</span>
+                      </Badge>
                     </div>
+                    
+                    {record.studentId && (
+                      <div className="flex items-center space-x-2 mb-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">
+                          {getStudentName(record.studentId)}
+                        </span>
+                      </div>
+                    )}
                     
                     <p className="text-gray-600 mb-3">
                       {record.description}

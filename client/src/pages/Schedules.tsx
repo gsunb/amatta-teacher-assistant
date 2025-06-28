@@ -189,7 +189,9 @@ export default function Schedules() {
     endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
     
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      days.push(new Date(d));
+      // Create date at noon to avoid timezone offset issues
+      const fixedDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+      days.push(fixedDate);
     }
     
     return days;
