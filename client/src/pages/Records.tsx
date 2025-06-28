@@ -301,6 +301,98 @@ export default function Records() {
           </Card>
         )}
 
+        {editingRecord && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-blue-800">기록 수정</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>제목 *</Label>
+                <Input
+                  value={editingRecord.title}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, title: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label>관련 학생</Label>
+                <Select
+                  value={editingRecord.studentId?.toString() || "none"}
+                  onValueChange={(value) => 
+                    setEditingRecord({ ...editingRecord, studentId: value === "none" ? null : parseInt(value) })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">학생 미지정</SelectItem>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.studentNumber}번 {student.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>상세 내용 *</Label>
+                <Textarea
+                  value={editingRecord.description}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, description: e.target.value })}
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label>날짜 *</Label>
+                <Input
+                  type="date"
+                  value={editingRecord.date}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, date: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label>중요도</Label>
+                <Select
+                  value={editingRecord.severity || "medium"}
+                  onValueChange={(value: "low" | "medium" | "high") => 
+                    setEditingRecord({ ...editingRecord, severity: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">낮음</SelectItem>
+                    <SelectItem value="medium">보통</SelectItem>
+                    <SelectItem value="high">높음</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  onClick={handleUpdateSubmit}
+                  disabled={updateRecordMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {updateRecordMutation.isPending ? "수정 중..." : "수정 완료"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingRecord(null)}
+                >
+                  취소
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {records.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -354,15 +446,25 @@ export default function Records() {
                     </p>
                   </div>
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteRecordMutation.mutate(record.id)}
-                    disabled={deleteRecordMutation.isPending}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(record)}
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteRecordMutation.mutate(record.id)}
+                      disabled={deleteRecordMutation.isPending}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -46,6 +46,7 @@ export interface IStorage {
   // Record operations
   getRecords(userId: string): Promise<Record[]>;
   createRecord(userId: string, record: InsertRecord): Promise<Record>;
+  updateRecord(userId: string, id: number, updates: Partial<InsertRecord>): Promise<Record>;
   deleteRecord(userId: string, id: number): Promise<void>;
 
   // Assessment operations
@@ -180,6 +181,15 @@ export class DatabaseStorage implements IStorage {
       .values({ ...record, userId })
       .returning();
     return newRecord;
+  }
+
+  async updateRecord(userId: string, id: number, updates: Partial<InsertRecord>): Promise<Record> {
+    const [record] = await db
+      .update(records)
+      .set(updates)
+      .where(and(eq(records.id, id), eq(records.userId, userId)))
+      .returning();
+    return record;
   }
 
   async deleteRecord(userId: string, id: number): Promise<void> {

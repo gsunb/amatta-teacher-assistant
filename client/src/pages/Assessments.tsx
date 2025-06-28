@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download, Grid, List, FileSpreadsheet } from "lucide-react";
+import { BarChart, Plus, Trash2, Upload, TrendingUp, Users, Download, Grid, List, FileSpreadsheet, Filter, ArrowUpDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as XLSX from 'xlsx';
 import type { Assessment, InsertAssessment } from "@shared/schema";
 
@@ -15,6 +16,9 @@ export default function Assessments() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadText, setUploadText] = useState("");
   const [viewMode, setViewMode] = useState<'dashboard' | 'by-task'>('dashboard');
+  const [filterSubject, setFilterSubject] = useState("all");
+  const [filterExam, setFilterExam] = useState("all");
+  const [sortBy, setSortBy] = useState<'score-high' | 'score-low' | 'number'>('score-high');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch assessments

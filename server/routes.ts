@@ -171,6 +171,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/records/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const record = await storage.updateRecord(userId, id, req.body);
+      res.json(record);
+    } catch (error) {
+      console.error("Error updating record:", error);
+      res.status(500).json({ message: "기록 수정에 실패했습니다." });
+    }
+  });
+
   app.delete("/api/records/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
