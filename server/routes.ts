@@ -147,6 +147,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/schedules/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const schedule = await storage.updateSchedule(userId, id, req.body);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      res.status(500).json({ message: "일정 수정에 실패했습니다." });
+    }
+  });
+
   app.delete("/api/schedules/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -351,6 +363,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "학생 추가에 실패했습니다." });
       }
+    }
+  });
+
+  app.post("/api/students/upload", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { data, classId } = req.body;
+      
+      if (!data || !classId) {
+        return res.status(400).json({ message: "데이터와 학급 ID가 필요합니다." });
+      }
+
+      // Parse the uploaded data
+      const lines = data.trim().split('\n').filter((line: string) => line.trim());
+      const students = [];
+
+      for (const line of lines) {
+        const parts = line.split(',').map((part: string) => part.trim());
+        if (parts.length >= 2) {
+          const studentNumber = parts[0];
+          const name = parts[1];
+          
+          if (studentNumber && name) {
+            students.push({
+              studentNumber,
+              name,
+              classId: parseInt(classId),
+            });
+          }
+        }
+      }
+
+      if (students.length === 0) {
+        return res.status(400).json({ message: "유효한 학생 데이터가 없습니다." });
+      }
+
+      const createdStudents = await storage.createMultipleStudents(userId, students);
+      res.json(createdStudents);
+    } catch (error) {
+      console.error("Error uploading students:", error);
+      res.status(500).json({ message: "학생 목록 업로드에 실패했습니다." });
     }
   });
 

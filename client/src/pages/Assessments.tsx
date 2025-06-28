@@ -253,13 +253,13 @@ export default function Assessments() {
   }
 
   // Get unique subjects and exam types for filters
-  const uniqueSubjects = [...new Set(assessments.map(a => a.subject))];
-  const uniqueExamTypes = [...new Set(assessments.map(a => a.examType))];
+  const uniqueSubjects = Array.from(new Set(assessments.map(a => a.subject)));
+  const uniqueExamTypes = Array.from(new Set(assessments.map(a => a.task)));
 
   // Filter assessments based on selected filters
   const filteredAssessments = assessments.filter(assessment => {
     const subjectMatch = filterSubject === "all" || assessment.subject === filterSubject;
-    const examMatch = filterExam === "all" || assessment.examType === filterExam;
+    const examMatch = filterExam === "all" || assessment.task === filterExam;
     return subjectMatch && examMatch;
   });
 
@@ -275,8 +275,8 @@ export default function Assessments() {
         const percentageB2 = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
         return percentageA2 - percentageB2;
       case 'number':
-        const numberA = parseInt(a.studentNumber || '999');
-        const numberB = parseInt(b.studentNumber || '999');
+        const numberA = parseInt(a.studentName?.split(' ')[0] || '999');
+        const numberB = parseInt(b.studentName?.split(' ')[0] || '999');
         return numberA - numberB;
       default:
         return 0;

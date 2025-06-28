@@ -16,6 +16,7 @@ import type { Schedule, InsertSchedule } from "@shared/schema";
 export default function Schedules() {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [activeTab, setActiveTab] = useState("timeline");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCompleted, setShowCompleted] = useState(false);
@@ -88,6 +89,29 @@ export default function Schedules() {
       toast({
         title: "오류",
         description: "일정 완료에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update schedule mutation
+  const updateScheduleMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertSchedule> }) => {
+      return await apiRequest("PATCH", `/api/schedules/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/schedules/upcoming"] });
+      toast({
+        title: "성공",
+        description: "일정이 수정되었습니다.",
+      });
+      setEditingSchedule(null);
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "일정 수정에 실패했습니다.",
         variant: "destructive",
       });
     },
