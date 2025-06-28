@@ -50,17 +50,19 @@ export const schedules = pgTable("schedules", {
   categoryColor: varchar("category_color", { length: 7 }).default("#3B82F6"), // hex color
   isRecurring: boolean("is_recurring").default(false),
   recurringType: varchar("recurring_type", { enum: ["daily", "weekly", "monthly"] }),
+  recurringDays: varchar("recurring_days"), // for weekly: "1,3,5" (Mon, Wed, Fri)
   recurringEndDate: date("recurring_end_date"),
   recurringParentId: integer("recurring_parent_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Incident records table
+// Student incident records table
 export const records = pgTable("records", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  studentId: integer("student_id").references(() => students.id),
   date: date("date").notNull(),
   severity: varchar("severity", { enum: ["low", "medium", "high"] }).default("medium"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -80,14 +82,23 @@ export const assessments = pgTable("assessments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Classes table
+export const classes = pgTable("classes", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  grade: varchar("grade").notNull(),
+  className: varchar("class_name").notNull(),
+  year: varchar("year").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Students table
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
+  classId: integer("class_id").notNull().references(() => classes.id),
+  studentNumber: varchar("student_number").notNull(),
   name: text("name").notNull(),
-  studentNumber: text("student_number"),
-  grade: text("grade"),
-  class: text("class"),
   riskLevel: text("risk_level").default("low"), // low, medium, high
   lastAlertDate: timestamp("last_alert_date"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -153,6 +164,12 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   createdAt: true,
 });
 
+export const insertClassSchema = createInsertSchema(classes).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
 export const insertStudentSchema = createInsertSchema(students).omit({
   id: true,
   userId: true,
@@ -188,6 +205,8 @@ export type Record = typeof records.$inferSelect;
 export type InsertRecord = z.infer<typeof insertRecordSchema>;
 export type Assessment = typeof assessments.$inferSelect;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
+export type Class = typeof classes.$inferSelect;
+export type InsertClass = z.infer<typeof insertClassSchema>;
 export type Student = typeof students.$inferSelect;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
 export type ParentCommunication = typeof parentCommunications.$inferSelect;
