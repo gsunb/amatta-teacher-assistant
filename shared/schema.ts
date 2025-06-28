@@ -42,9 +42,16 @@ export const schedules = pgTable("schedules", {
   userId: varchar("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   date: date("date").notNull(),
-  time: time("time"),
-  endTime: time("end_time"),
+  time: varchar("time", { length: 5 }), // HH:MM format
+  endTime: varchar("end_time", { length: 5 }), // HH:MM format
   description: text("description"),
+  isCompleted: boolean("is_completed").default(false),
+  category: varchar("category", { length: 50 }).default("일반"),
+  categoryColor: varchar("category_color", { length: 7 }).default("#3B82F6"), // hex color
+  isRecurring: boolean("is_recurring").default(false),
+  recurringType: varchar("recurring_type", { enum: ["daily", "weekly", "monthly"] }),
+  recurringEndDate: date("recurring_end_date"),
+  recurringParentId: integer("recurring_parent_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
