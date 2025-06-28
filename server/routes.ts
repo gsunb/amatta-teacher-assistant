@@ -108,94 +108,9 @@ function parseNaturalLanguageDate(text: string): string {
   return today.toISOString().split('T')[0];
 }
 
-// Parse date ranges for field trip attendance
-function parseDateRange(text: string): string[] {
-  const dates = [];
-  const today = new Date();
-  
-  // Handle date ranges like "7/1~7/4" or "7/1-7/4"
-  const dateRangeMatch = text.match(/(\d{1,2})\/(\d{1,2})\s*[~-]\s*(\d{1,2})\/(\d{1,2})/);
-  if (dateRangeMatch) {
-    const startMonth = parseInt(dateRangeMatch[1]);
-    const startDay = parseInt(dateRangeMatch[2]);
-    const endMonth = parseInt(dateRangeMatch[3]);
-    const endDay = parseInt(dateRangeMatch[4]);
-    const year = today.getFullYear();
-    
-    const startDate = new Date(year, startMonth - 1, startDay);
-    const endDate = new Date(year, endMonth - 1, endDay);
-    
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      dates.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-  }
-  
-  return dates;
-}
 
-// Parse class period from attendance text
-function parseClassPeriod(text: string): string | null {
-  // Handle patterns like "1교시", "5교시부터", "3교시까지"
-  const periodMatch = text.match(/(\d{1,2})교시/);
-  if (periodMatch) {
-    return periodMatch[1] + "교시";
-  }
-  return null;
-}
 
-// Parse attendance type and reason with correct schema types
-function parseAttendanceDetails(text: string): { 
-  status: "present" | "late" | "early_leave" | "absent" | "field_trip",
-  category: "field_trip" | "illness" | "unexcused" | "excused" | null,
-  reason: string 
-} {
-  const lowerText = text.toLowerCase();
-  
-  // Check for field trip (체험학습)
-  if (lowerText.includes('체험학습')) {
-    return { status: 'field_trip', category: 'field_trip', reason: '체험학습' };
-  }
-  
-  // Check for tardiness (지각)
-  if (lowerText.includes('지각')) {
-    if (lowerText.includes('배아파') || lowerText.includes('복통')) {
-      return { status: 'late', category: 'illness', reason: '복통' };
-    }
-    if (lowerText.includes('머리아파') || lowerText.includes('두통')) {
-      return { status: 'late', category: 'illness', reason: '두통' };
-    }
-    if (lowerText.includes('감기') || lowerText.includes('몸살')) {
-      return { status: 'late', category: 'illness', reason: '감기' };
-    }
-    return { status: 'late', category: 'unexcused', reason: '개인사정' };
-  }
-  
-  // Check for early departure (조퇴)
-  if (lowerText.includes('조퇴')) {
-    if (lowerText.includes('배아파') || lowerText.includes('복통')) {
-      return { status: 'early_leave', category: 'illness', reason: '복통' };
-    }
-    if (lowerText.includes('머리아파') || lowerText.includes('두통')) {
-      return { status: 'early_leave', category: 'illness', reason: '두통' };
-    }
-    if (lowerText.includes('감기') || lowerText.includes('몸살')) {
-      return { status: 'early_leave', category: 'illness', reason: '감기' };
-    }
-    return { status: 'early_leave', category: 'unexcused', reason: '개인사정' };
-  }
-  
-  // Check for absence (결석)
-  if (lowerText.includes('결석') || lowerText.includes('안 왔') || lowerText.includes('없었')) {
-    if (lowerText.includes('병원') || lowerText.includes('아파')) {
-      return { status: 'absent', category: 'illness', reason: '질병' };
-    }
-    return { status: 'absent', category: 'unexcused', reason: '개인사정' };
-  }
-  
-  return { status: 'present', category: null, reason: '' };
-}
+
 
 // Basic command parsing function for fallback when no API key is provided
 async function parseCommandBasic(command: string, userId: string) {

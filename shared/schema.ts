@@ -119,19 +119,7 @@ export const parentCommunications = pgTable("parent_communications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Attendance tracking
-export const attendance = pgTable("attendance", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  studentId: integer("student_id").notNull().references(() => students.id),
-  date: date("date").notNull(),
-  status: varchar("status", { enum: ["present", "late", "early_leave", "absent", "field_trip"] }).notNull(),
-  category: varchar("category", { enum: ["illness", "unexcused", "excused", "field_trip"] }).default("unexcused"),
-  reason: text("reason"),
-  time: varchar("time", { length: 5 }), // HH:MM format for late/early leave
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+
 
 // Smart notifications (keeping for compatibility)
 export const notifications = pgTable("notifications", {
@@ -198,11 +186,7 @@ export const insertParentCommunicationSchema = createInsertSchema(parentCommunic
   createdAt: true,
 });
 
-export const insertAttendanceSchema = createInsertSchema(attendance).omit({
-  id: true,
-  userId: true,
-  createdAt: true,
-});
+
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
@@ -231,8 +215,7 @@ export type Student = typeof students.$inferSelect;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
 export type ParentCommunication = typeof parentCommunications.$inferSelect;
 export type InsertParentCommunication = z.infer<typeof insertParentCommunicationSchema>;
-export type Attendance = typeof attendance.$inferSelect;
-export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
+
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Backup = typeof backups.$inferSelect;

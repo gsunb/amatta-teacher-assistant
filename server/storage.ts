@@ -6,7 +6,6 @@ import {
   classes,
   students,
   parentCommunications,
-  attendance,
   notifications,
   backups,
   type User,
@@ -23,8 +22,6 @@ import {
   type InsertStudent,
   type ParentCommunication,
   type InsertParentCommunication,
-  type Attendance,
-  type InsertAttendance,
   type Notification,
   type InsertNotification,
   type Backup,
@@ -79,13 +76,7 @@ export interface IStorage {
   updateParentCommunication(userId: string, id: number, updates: Partial<InsertParentCommunication>): Promise<void>;
   deleteParentCommunication(userId: string, id: number): Promise<void>;
 
-  // Attendance operations
-  getAttendance(userId: string, date?: string): Promise<Attendance[]>;
-  createAttendance(userId: string, attendance: InsertAttendance): Promise<Attendance>;
-  updateAttendance(userId: string, id: number, updates: Partial<InsertAttendance>): Promise<Attendance>;
-  deleteAttendance(userId: string, id: number): Promise<void>;
-  getAttendanceByStudent(userId: string, studentId: number): Promise<Attendance[]>;
-  getFieldTripStats(userId: string, studentId: number, year: number): Promise<number>;
+
 
   // Notification operations
   getNotifications(userId: string): Promise<Notification[]>;
