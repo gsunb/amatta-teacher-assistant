@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, Plus, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, List, CalendarDays } from "lucide-react";
 import type { Schedule, InsertSchedule } from "@shared/schema";
 
 export default function Schedules() {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const [activeTab, setActiveTab] = useState("timeline");
   const [newSchedule, setNewSchedule] = useState<InsertSchedule>({
     title: "",
     date: "",
@@ -96,6 +98,58 @@ export default function Schedules() {
       weekday: 'long'
     });
   };
+
+  const formatShortDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getWeekNumber = (date: Date) => {
+    const startDate = new Date(date.getFullYear(), 0, 1);
+    const days = Math.floor((date.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    return Math.ceil(days / 7);
+  };
+
+  // Group schedules by date for timeline view
+  const groupedSchedules = schedules.reduce((groups: { [key: string]: Schedule[] }, schedule) => {
+    const date = schedule.date;
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(schedule);
+    return groups;
+  }, {});
+
+  // Sort dates
+  const sortedDates = Object.keys(groupedSchedules).sort((a, b) => 
+    new Date(a).getTime() - new Date(b).getTime()
+  );
+
+  // Generate calendar grid (current month)
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days = [];
+    const endDate = new Date(lastDay);
+    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
+    
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      days.push(new Date(d));
+    }
+    
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays();
 
   if (isLoading) {
     return (
@@ -194,70 +248,172 @@ export default function Schedules() {
         </Card>
       )}
 
-      {/* Schedules List */}
-      <div className="space-y-4">
-        {schedules.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">일정이 없습니다</h3>
-              <p className="text-gray-500 mb-4">첫 번째 일정을 추가해보세요.</p>
-              <Button onClick={() => setIsAdding(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                일정 추가
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          schedules.map((schedule) => (
-            <Card key={schedule.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {schedule.title}
-                      </h3>
+      {/* View Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="timeline" className="flex items-center space-x-2">
+            <List className="h-4 w-4" />
+            <span>타임라인 뷰</span>
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center space-x-2">
+            <CalendarDays className="h-4 w-4" />
+            <span>캘린더 뷰</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Timeline View */}
+        <TabsContent value="timeline">
+          <div className="space-y-4">
+            {schedules.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">일정이 없습니다</h3>
+                  <p className="text-gray-500 mb-4">첫 번째 일정을 추가해보세요.</p>
+                  <Button onClick={() => setIsAdding(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    일정 추가
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {sortedDates.map((date) => (
+                  <div key={date} className="relative">
+                    {/* Date Header */}
+                    <div className="flex items-center mb-4">
+                      <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        {formatDate(date)}
+                      </div>
+                      <div className="flex-1 h-px bg-gray-200 ml-4"></div>
                     </div>
                     
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(schedule.date)}</span>
+                    {/* Schedules for this date */}
+                    <div className="space-y-3 ml-4">
+                      {groupedSchedules[date].map((schedule) => (
+                        <Card key={schedule.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                  {schedule.title}
+                                </h3>
+                                
+                                {schedule.time && (
+                                  <div className="flex items-center space-x-1 text-sm text-gray-600 mb-2">
+                                    <Clock className="h-4 w-4" />
+                                    <span>
+                                      {schedule.time}
+                                      {schedule.endTime && ` - ${schedule.endTime}`}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {schedule.description && (
+                                  <p className="text-gray-600 text-sm">
+                                    {schedule.description}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteScheduleMutation.mutate(schedule.id)}
+                                disabled={deleteScheduleMutation.isPending}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Calendar View */}
+        <TabsContent value="calendar">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-center space-x-2">
+                <CalendarIcon className="h-5 w-5" />
+                <span>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1 mb-4">
+                {/* Day headers */}
+                {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                  <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+                    {day}
+                  </div>
+                ))}
+                
+                {/* Calendar days */}
+                {calendarDays.map((day, index) => {
+                  const dateStr = day.toISOString().split('T')[0];
+                  const daySchedules = groupedSchedules[dateStr] || [];
+                  const isCurrentMonth = day.getMonth() === new Date().getMonth();
+                  const isToday = dateStr === new Date().toISOString().split('T')[0];
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`
+                        p-2 h-24 border border-gray-200 overflow-hidden
+                        ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : 'bg-white'}
+                        ${isToday ? 'bg-blue-50 border-blue-300' : ''}
+                      `}
+                    >
+                      <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : ''}`}>
+                        {day.getDate()}
                       </div>
-                      {schedule.time && (
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>
-                            {schedule.time}
-                            {schedule.endTime && ` - ${schedule.endTime}`}
-                          </span>
+                      
+                      {daySchedules.slice(0, 2).map((schedule) => (
+                        <div 
+                          key={schedule.id}
+                          className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 mb-1 truncate cursor-pointer hover:bg-blue-200"
+                          title={`${schedule.title} ${schedule.time ? `(${schedule.time})` : ''}`}
+                        >
+                          {schedule.time && (
+                            <span className="font-medium">{schedule.time.substring(0, 5)} </span>
+                          )}
+                          {schedule.title}
+                        </div>
+                      ))}
+                      
+                      {daySchedules.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{daySchedules.length - 2}개 더
                         </div>
                       )}
                     </div>
-                    
-                    {schedule.description && (
-                      <p className="text-gray-600 text-sm mt-2">
-                        {schedule.description}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteScheduleMutation.mutate(schedule.id)}
-                    disabled={deleteScheduleMutation.isPending}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  );
+                })}
+              </div>
+              
+              {/* Legend */}
+              <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 mt-4">
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 bg-blue-50 border border-blue-300 rounded"></div>
+                  <span>오늘</span>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 bg-blue-100 rounded"></div>
+                  <span>일정 있음</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }
