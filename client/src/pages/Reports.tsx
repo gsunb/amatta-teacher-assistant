@@ -307,8 +307,8 @@ ${students.map(s => {
                 </div>
               ) : (
                 <div className="text-center py-6">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">출결 주의 학생이 없습니다.</p>
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500">주의가 필요한 학생이 없습니다.</p>
                   <p className="text-sm text-gray-400">훌륭한 학급 관리입니다!</p>
                 </div>
               );
