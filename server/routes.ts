@@ -27,22 +27,23 @@ async function parseCommandBasic(command: string, userId: string) {
     
     if (hasFutureIndicator && !hasPastIndicator) {
       // Future consultation -> Schedule
-      const today = new Date().toISOString().split('T')[0];
+      const parsedDate = parseNaturalLanguageDate(command);
       const schedule = await storage.createSchedule(userId, {
         title: command,
-        date: today,
+        date: parsedDate,
         description: `자동 생성됨: ${command}`
       });
       results.push({ type: 'schedule', data: schedule });
     } else if (hasPastIndicator || (!hasFutureIndicator && !hasPastIndicator)) {
       // Past consultation or unclear -> Parent Communication
       const studentName = extractStudentName(command);
+      const parsedDate = parseNaturalLanguageDate(command);
       const communication = await storage.createParentCommunication(userId, {
         studentName: studentName || '미지정',
         communicationType: '상담',
         purpose: command,
         summary: command,
-        date: new Date().toISOString().split('T')[0],
+        date: parsedDate,
         followUpRequired: false,
         followUpCompleted: true
       });
@@ -83,7 +84,7 @@ async function parseCommandBasic(command: string, userId: string) {
       title,
       description: command,
       date: today,
-      severity: determineSeverity(command),
+      severity: determineSeverity(command) as "low" | "medium" | "high",
       studentIds: studentIds.length > 0 ? studentIds : null
     });
     results.push({ type: 'record', data: record });
@@ -106,7 +107,81 @@ function extractStudentNames(text: string): string[] {
   return matches ? matches.map(match => match.replace(/\s|의|이|가|를|을|와|과|에게|한테/g, '')) : [];
 }
 
-function determineSeverity(text: string): string {
+function parseNaturalLanguageDate(text: string): string {
+  const today = new Date();
+  const lowerText = text.toLowerCase();
+  
+  // Handle relative day references
+  if (lowerText.includes('오늘')) {
+    return today.toISOString().split('T')[0];
+  }
+  
+  if (lowerText.includes('어제')) {
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  }
+  
+  if (lowerText.includes('내일')) {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+  
+  // Handle "지난 요일" patterns
+  const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토'];
+  
+  for (let i = 0; i < dayNames.length; i++) {
+    if (lowerText.includes(`지난 ${dayNames[i]}`) || lowerText.includes(`지난${dayNames[i]}`) || 
+        lowerText.includes(`지난 ${dayNamesShort[i]}요일`) || lowerText.includes(`지난${dayNamesShort[i]}요일`)) {
+      
+      const targetDay = new Date(today);
+      const currentDay = today.getDay();
+      let daysBack = currentDay - i;
+      
+      if (daysBack <= 0) {
+        daysBack += 7; // Go to previous week
+      }
+      
+      targetDay.setDate(today.getDate() - daysBack);
+      return targetDay.toISOString().split('T')[0];
+    }
+  }
+  
+  // Handle "다음 요일" patterns
+  for (let i = 0; i < dayNames.length; i++) {
+    if (lowerText.includes(`다음 ${dayNames[i]}`) || lowerText.includes(`다음${dayNames[i]}`) || 
+        lowerText.includes(`다음 ${dayNamesShort[i]}요일`) || lowerText.includes(`다음${dayNamesShort[i]}요일`)) {
+      
+      const targetDay = new Date(today);
+      const currentDay = today.getDay();
+      let daysForward = i - currentDay;
+      
+      if (daysForward <= 0) {
+        daysForward += 7; // Go to next week
+      }
+      
+      targetDay.setDate(today.getDate() + daysForward);
+      return targetDay.toISOString().split('T')[0];
+    }
+  }
+  
+  // Handle specific date patterns like "6월 26일"
+  const dateMatch = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if (dateMatch) {
+    const month = parseInt(dateMatch[1]);
+    const day = parseInt(dateMatch[2]);
+    const year = today.getFullYear();
+    const targetDate = new Date(year, month - 1, day);
+    return targetDate.toISOString().split('T')[0];
+  }
+  
+  // Default to today if no pattern matches
+  return today.toISOString().split('T')[0];
+}
+
+function determineSeverity(text: string): "low" | "medium" | "high" {
   const lowerText = text.toLowerCase();
   if (lowerText.includes('폭력') || lowerText.includes('위험') || lowerText.includes('심각') || lowerText.includes('가격') || lowerText.includes('잡아당기')) {
     return 'high';

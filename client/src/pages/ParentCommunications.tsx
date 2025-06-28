@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Phone, MessageSquare, Users, Calendar, Clock, CheckCircle, AlertCircle, Plus, Trash2 } from "lucide-react";
-import type { ParentCommunication, InsertParentCommunication } from "@shared/schema";
+import type { ParentCommunication, InsertParentCommunication, Student } from "@shared/schema";
 
 export default function ParentCommunications() {
   const { toast } = useToast();
@@ -30,6 +30,11 @@ export default function ParentCommunications() {
   // Fetch communications
   const { data: communications = [], isLoading } = useQuery<ParentCommunication[]>({
     queryKey: ["/api/parent-communications"],
+  });
+
+  // Fetch students for dropdown
+  const { data: students = [] } = useQuery<Student[]>({
+    queryKey: ["/api/students"],
   });
 
   // Create communication mutation
@@ -172,13 +177,22 @@ export default function ParentCommunications() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="studentName">학생 이름 *</Label>
-                <Input
-                  id="studentName"
-                  value={newCommunication.studentName}
-                  onChange={(e) => setNewCommunication({ ...newCommunication, studentName: e.target.value })}
-                  placeholder="예: 김철수"
-                />
+                <Label htmlFor="studentName">학생 선택 *</Label>
+                <Select 
+                  value={newCommunication.studentName} 
+                  onValueChange={(value) => setNewCommunication({ ...newCommunication, studentName: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="학생을 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.name}>
+                        {student.studentNumber}번 {student.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="communicationType">소통 방식 *</Label>
