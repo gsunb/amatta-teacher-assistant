@@ -94,6 +94,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/schedules/upcoming", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const days = parseInt(req.query.days as string) || 7;
+      const schedules = await storage.getUpcomingSchedules(userId, days);
+      res.json(schedules);
+    } catch (error) {
+      console.error("Error fetching upcoming schedules:", error);
+      res.status(500).json({ message: "다가오는 일정을 불러오는데 실패했습니다." });
+    }
+  });
+
+  app.patch("/api/schedules/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const schedule = await storage.updateSchedule(userId, id, req.body);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      res.status(500).json({ message: "일정 수정에 실패했습니다." });
+    }
+  });
+
+  app.patch("/api/schedules/:id/complete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.completeSchedule(userId, id);
+      res.json({ message: "일정이 완료되었습니다." });
+    } catch (error) {
+      console.error("Error completing schedule:", error);
+      res.status(500).json({ message: "일정 완료에 실패했습니다." });
+    }
+  });
+
   app.delete("/api/schedules/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

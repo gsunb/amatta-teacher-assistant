@@ -286,7 +286,7 @@ export default function Schedules() {
               <div>
                 <Label htmlFor="category">카테고리</Label>
                 <Select 
-                  value={newSchedule.category} 
+                  value={newSchedule.category || ""} 
                   onValueChange={(value) => {
                     const selectedCategory = categoryOptions.find(c => c.value === value);
                     setNewSchedule({ 
@@ -370,6 +370,28 @@ export default function Schedules() {
         </Card>
       )}
 
+      {/* Filter Controls */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Label htmlFor="showCompleted">완료된 일정 포함</Label>
+                <Switch
+                  id="showCompleted"
+                  checked={showCompleted}
+                  onCheckedChange={setShowCompleted}
+                />
+              </div>
+            </div>
+            <div className="text-sm text-gray-500">
+              총 {filteredSchedules.length}개 일정
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* View Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -386,7 +408,7 @@ export default function Schedules() {
         {/* Timeline View */}
         <TabsContent value="timeline">
           <div className="space-y-4">
-            {schedules.length === 0 ? (
+            {filteredSchedules.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -400,60 +422,101 @@ export default function Schedules() {
               </Card>
             ) : (
               <div className="space-y-6">
-                {sortedDates.map((date) => (
-                  <div key={date} className="relative">
-                    {/* Date Header */}
-                    <div className="flex items-center mb-4">
-                      <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        {formatDate(date)}
+                {Object.keys(filteredSchedules.reduce((groups: { [key: string]: Schedule[] }, schedule) => {
+                  const date = schedule.date;
+                  if (!groups[date]) groups[date] = [];
+                  groups[date].push(schedule);
+                  return groups;
+                }, {})).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).map((date) => {
+                  const daySchedules = filteredSchedules.filter(s => s.date === date);
+                  
+                  return (
+                    <div key={date} className="relative">
+                      {/* Date Header */}
+                      <div className="flex items-center mb-4">
+                        <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                          {formatDate(date)}
+                        </div>
+                        <div className="flex-1 h-px bg-gray-200 ml-4"></div>
                       </div>
-                      <div className="flex-1 h-px bg-gray-200 ml-4"></div>
-                    </div>
-                    
-                    {/* Schedules for this date */}
-                    <div className="space-y-3 ml-4">
-                      {groupedSchedules[date].map((schedule) => (
-                        <Card key={schedule.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                  {schedule.title}
-                                </h3>
-                                
-                                {schedule.time && (
-                                  <div className="flex items-center space-x-1 text-sm text-gray-600 mb-2">
-                                    <Clock className="h-4 w-4" />
-                                    <span>
-                                      {schedule.time}
-                                      {schedule.endTime && ` - ${schedule.endTime}`}
-                                    </span>
+                      
+                      {/* Schedules for this date */}
+                      <div className="space-y-3 ml-4">
+                        {daySchedules.map((schedule) => (
+                          <Card 
+                            key={schedule.id} 
+                            className={`hover:shadow-md transition-shadow border-l-4 ${schedule.isCompleted ? 'opacity-70' : ''}`}
+                            style={{ borderLeftColor: schedule.categoryColor || '#3B82F6' }}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <h3 className={`text-lg font-semibold text-gray-900 ${schedule.isCompleted ? 'line-through' : ''}`}>
+                                      {schedule.title}
+                                    </h3>
+                                    {schedule.category && schedule.category !== '일반' && (
+                                      <span 
+                                        className="px-2 py-0.5 rounded text-xs font-medium text-white"
+                                        style={{ backgroundColor: schedule.categoryColor || '#3B82F6' }}
+                                      >
+                                        {schedule.category}
+                                      </span>
+                                    )}
+                                    {schedule.isCompleted && (
+                                      <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                                        완료
+                                      </span>
+                                    )}
                                   </div>
-                                )}
+                                  
+                                  {schedule.time && (
+                                    <div className="flex items-center space-x-1 text-sm text-gray-600 mb-2">
+                                      <Clock className="h-4 w-4" />
+                                      <span>
+                                        {schedule.time.substring(0, 5)}
+                                        {schedule.endTime && ` - ${schedule.endTime.substring(0, 5)}`}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {schedule.description && (
+                                    <p className="text-gray-600 text-sm">
+                                      {schedule.description}
+                                    </p>
+                                  )}
+                                </div>
                                 
-                                {schedule.description && (
-                                  <p className="text-gray-600 text-sm">
-                                    {schedule.description}
-                                  </p>
-                                )}
+                                <div className="flex items-center space-x-2">
+                                  {!schedule.isCompleted && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => completeScheduleMutation.mutate(schedule.id)}
+                                      disabled={completeScheduleMutation.isPending}
+                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deleteScheduleMutation.mutate(schedule.id)}
+                                    disabled={deleteScheduleMutation.isPending}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteScheduleMutation.mutate(schedule.id)}
-                                disabled={deleteScheduleMutation.isPending}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -463,10 +526,30 @@ export default function Schedules() {
         <TabsContent value="calendar">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-center space-x-2">
-                <CalendarIcon className="h-5 w-5" />
-                <span>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}</span>
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={prevMonth}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <CardTitle className="flex items-center space-x-2">
+                  <CalendarIcon className="h-5 w-5" />
+                  <span>{currentMonth.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}</span>
+                </CardTitle>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={nextMonth}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {/* Calendar Grid */}
@@ -481,15 +564,15 @@ export default function Schedules() {
                 {/* Calendar days */}
                 {calendarDays.map((day, index) => {
                   const dateStr = day.toISOString().split('T')[0];
-                  const daySchedules = groupedSchedules[dateStr] || [];
-                  const isCurrentMonth = day.getMonth() === new Date().getMonth();
+                  const daySchedules = schedules.filter(s => s.date === dateStr);
+                  const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
                   const isToday = dateStr === new Date().toISOString().split('T')[0];
                   
                   return (
                     <div 
                       key={index} 
                       className={`
-                        p-2 h-24 border border-gray-200 overflow-hidden
+                        p-2 h-32 border border-gray-200 overflow-hidden
                         ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : 'bg-white'}
                         ${isToday ? 'bg-blue-50 border-blue-300' : ''}
                       `}
@@ -498,22 +581,34 @@ export default function Schedules() {
                         {day.getDate()}
                       </div>
                       
-                      {daySchedules.slice(0, 2).map((schedule) => (
+                      {daySchedules.slice(0, 3).map((schedule) => (
                         <div 
                           key={schedule.id}
-                          className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 mb-1 truncate cursor-pointer hover:bg-blue-200"
-                          title={`${schedule.title} ${schedule.time ? `(${schedule.time})` : ''}`}
+                          className={`text-xs rounded px-1 py-0.5 mb-1 truncate cursor-pointer hover:opacity-80 ${
+                            schedule.isCompleted ? 'line-through opacity-60' : ''
+                          }`}
+                          style={{ 
+                            backgroundColor: schedule.categoryColor ? `${schedule.categoryColor}20` : '#3B82F620',
+                            color: schedule.categoryColor || '#3B82F6',
+                            border: `1px solid ${schedule.categoryColor || '#3B82F6'}40`
+                          }}
+                          title={`${schedule.title} ${schedule.time ? `(${schedule.time.substring(0, 5)})` : ''} ${schedule.isCompleted ? '(완료)' : ''}`}
                         >
                           {schedule.time && (
                             <span className="font-medium">{schedule.time.substring(0, 5)} </span>
                           )}
-                          {schedule.title}
+                          <span className={schedule.isCompleted ? 'line-through' : ''}>
+                            {schedule.title}
+                          </span>
+                          {schedule.isCompleted && (
+                            <span className="ml-1">✓</span>
+                          )}
                         </div>
                       ))}
                       
-                      {daySchedules.length > 2 && (
+                      {daySchedules.length > 3 && (
                         <div className="text-xs text-gray-500">
-                          +{daySchedules.length - 2}개 더
+                          +{daySchedules.length - 3}개 더
                         </div>
                       )}
                     </div>
