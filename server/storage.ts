@@ -38,6 +38,7 @@ export interface IStorage {
   // Schedule operations
   getSchedules(userId: string): Promise<Schedule[]>;
   createSchedule(userId: string, schedule: InsertSchedule): Promise<Schedule>;
+  createRecurringSchedules(userId: string, schedule: InsertSchedule): Promise<Schedule[]>;
   updateSchedule(userId: string, id: number, updates: Partial<InsertSchedule>): Promise<Schedule>;
   deleteSchedule(userId: string, id: number): Promise<void>;
   completeSchedule(userId: string, id: number): Promise<void>;
@@ -125,6 +126,50 @@ export class DatabaseStorage implements IStorage {
       .values({ ...schedule, userId })
       .returning();
     return newSchedule;
+  }
+
+  async createRecurringSchedules(userId: string, schedule: InsertSchedule): Promise<Schedule[]> {
+    const startDate = new Date(schedule.date);
+    const endDate = new Date(schedule.recurringEndDate!);
+    const createdSchedules: Schedule[] = [];
+    
+    let currentDate = new Date(startDate);
+    let count = 0;
+    const maxSchedules = 90; // Limit to 90 schedules (3 months max)
+    
+    while (currentDate <= endDate && count < maxSchedules) {
+      const scheduleData = {
+        ...schedule,
+        date: currentDate.toISOString().split('T')[0],
+        userId,
+        isRecurring: true,
+      };
+      
+      const [newSchedule] = await db
+        .insert(schedules)
+        .values(scheduleData)
+        .returning();
+      
+      createdSchedules.push(newSchedule);
+      count++;
+      
+      // Calculate next date based on recurring type
+      switch (schedule.recurringType) {
+        case 'daily':
+          currentDate.setDate(currentDate.getDate() + 1);
+          break;
+        case 'weekly':
+          currentDate.setDate(currentDate.getDate() + 7);
+          break;
+        case 'monthly':
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+        default:
+          return createdSchedules; // Exit if invalid type
+      }
+    }
+    
+    return createdSchedules;
   }
 
   async updateSchedule(userId: string, id: number, updates: Partial<InsertSchedule>): Promise<Schedule> {

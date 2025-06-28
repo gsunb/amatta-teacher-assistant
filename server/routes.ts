@@ -95,6 +95,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/schedules/recurring", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertScheduleSchema.parse(req.body);
+      const schedules = await storage.createRecurringSchedules(userId, validatedData);
+      res.json(schedules);
+    } catch (error) {
+      console.error("Error creating recurring schedules:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "잘못된 입력 데이터입니다." });
+      } else {
+        res.status(500).json({ message: "반복 일정 생성에 실패했습니다." });
+      }
+    }
+  });
+
   app.get("/api/schedules/upcoming", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

@@ -41,7 +41,11 @@ export default function Schedules() {
   // Create schedule mutation
   const createScheduleMutation = useMutation({
     mutationFn: async (schedule: InsertSchedule) => {
-      return await apiRequest("POST", "/api/schedules", schedule);
+      if (schedule.isRecurring && schedule.recurringType && schedule.recurringEndDate) {
+        return await apiRequest("POST", "/api/schedules/recurring", schedule);
+      } else {
+        return await apiRequest("POST", "/api/schedules", schedule);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });

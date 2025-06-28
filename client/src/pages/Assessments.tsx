@@ -252,8 +252,39 @@ export default function Assessments() {
     );
   }
 
+  // Get unique subjects and exam types for filters
+  const uniqueSubjects = [...new Set(assessments.map(a => a.subject))];
+  const uniqueExamTypes = [...new Set(assessments.map(a => a.examType))];
+
+  // Filter assessments based on selected filters
+  const filteredAssessments = assessments.filter(assessment => {
+    const subjectMatch = filterSubject === "all" || assessment.subject === filterSubject;
+    const examMatch = filterExam === "all" || assessment.examType === filterExam;
+    return subjectMatch && examMatch;
+  });
+
+  // Sort assessments based on selected sort option
+  const sortedAssessments = [...filteredAssessments].sort((a, b) => {
+    switch (sortBy) {
+      case 'score-high':
+        const percentageA = a.score && a.maxScore ? (a.score / a.maxScore) * 100 : 0;
+        const percentageB = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
+        return percentageB - percentageA;
+      case 'score-low':
+        const percentageA2 = a.score && a.maxScore ? (a.score / a.maxScore) * 100 : 0;
+        const percentageB2 = b.score && b.maxScore ? (b.score / b.maxScore) * 100 : 0;
+        return percentageA2 - percentageB2;
+      case 'number':
+        const numberA = parseInt(a.studentNumber || '999');
+        const numberB = parseInt(b.studentNumber || '999');
+        return numberA - numberB;
+      default:
+        return 0;
+    }
+  });
+
   // Calculate statistics for dashboard
-  const subjectStats = assessments.reduce((acc, assessment) => {
+  const subjectStats = filteredAssessments.reduce((acc, assessment) => {
     if (!assessment.score || !assessment.maxScore) return acc;
     
     if (!acc[assessment.subject]) {
