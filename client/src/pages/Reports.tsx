@@ -277,7 +277,7 @@ ${students.map(s => {
                         <div className="flex items-center space-x-2">
                           <UserX className="h-4 w-4 text-orange-600" />
                           <span className="font-medium text-gray-900">
-                            {student.student.studentNumber}번 {student.student.name}
+                            {student.student.name}
                           </span>
                         </div>
                         <div className="flex space-x-1">

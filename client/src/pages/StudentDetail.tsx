@@ -8,8 +8,8 @@ import { Link } from "wouter";
 import type { Student, Assessment, Record, Schedule } from "@shared/schema";
 
 export default function StudentDetail() {
-  const [match, params] = useRoute("/students/:studentName");
-  const studentName = decodeURIComponent(params?.studentName || "");
+  const [match, params] = useRoute("/students/:studentId");
+  const studentId = parseInt(params?.studentId || "0");
 
   // Fetch all data
   const { data: students = [] } = useQuery<Student[]>({
@@ -29,15 +29,15 @@ export default function StudentDetail() {
   });
 
   // Find the specific student
-  const student = students.find(s => s.name === studentName);
+  const student = students.find(s => s.id === studentId);
 
   // Filter data for this student
-  const studentAssessments = assessments.filter(a => a.studentName === studentName);
+  const studentAssessments = assessments.filter(a => a.studentName === student?.name);
   const studentRecords = records.filter(r => 
-    r.title.includes(studentName) || r.description?.includes(studentName)
+    r.title.includes(student?.name || "") || r.description?.includes(student?.name || "")
   );
   const studentSchedules = schedules.filter(s => 
-    s.title.includes(studentName) || s.description?.includes(studentName)
+    s.title.includes(student?.name || "") || s.description?.includes(student?.name || "")
   );
 
   // Calculate student statistics
@@ -83,11 +83,7 @@ export default function StudentDetail() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{student.name}</h1>
             <p className="text-gray-600">
-              {student.grade && student.class 
-                ? `${student.grade}학년 ${student.class}반` 
-                : '학급 정보 없음'
-              }
-              {student.studentNumber && ` • 학번: ${student.studentNumber}`}
+              학번: {student.studentNumber}
             </p>
           </div>
         </div>

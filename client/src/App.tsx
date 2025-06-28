@@ -45,7 +45,7 @@ function Router() {
               <Route path="/schedules" component={Schedules} />
               <Route path="/records" component={Records} />
               <Route path="/assessments" component={Assessments} />
-              <Route path="/students/:studentName" component={StudentDetail} />
+              <Route path="/students/:studentId" component={StudentDetail} />
               <Route path="/classes" component={Classes} />
               <Route path="/reports" component={Reports} />
               <Route path="/student-reports" component={StudentReports} />
