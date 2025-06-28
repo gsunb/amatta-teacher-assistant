@@ -16,6 +16,7 @@ export default function Records() {
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Record | null>(null);
+  const [selectedStudentFilter, setSelectedStudentFilter] = useState<string>("all");
   const [newRecord, setNewRecord] = useState<InsertRecord>({
     title: "",
     description: "",
@@ -175,7 +176,7 @@ export default function Records() {
   const getStudentName = (studentId: number | null) => {
     if (!studentId) return "학생 미지정";
     const student = students.find(s => s.id === studentId);
-    return student ? `${student.studentNumber}번 ${student.name}` : "학생 미지정";
+    return student ? student.name : "학생 미지정";
   };
 
   if (isLoading) {
@@ -200,10 +201,25 @@ export default function Records() {
           <FileText className="h-8 w-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-900">누가 기록</h1>
         </div>
-        <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          기록 추가
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Select value={selectedStudentFilter} onValueChange={setSelectedStudentFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="학생별 필터" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 학생</SelectItem>
+              {students.map((student) => (
+                <SelectItem key={student.id} value={student.id.toString()}>
+                  {student.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            기록 추가
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -470,7 +486,13 @@ export default function Records() {
             </CardContent>
           </Card>
         ) : (
-          records.map((record) => (
+          records
+            .filter((record) => {
+              if (selectedStudentFilter === "all") return true;
+              const filterId = parseInt(selectedStudentFilter);
+              return record.studentIds?.includes(filterId);
+            })
+            .map((record) => (
             <Card key={record.id} className={`hover:shadow-md transition-shadow border-l-4 ${getSeverityColor(record.severity || "medium")}`}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">

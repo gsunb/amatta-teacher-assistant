@@ -188,7 +188,7 @@ export default function ParentCommunications() {
                   <SelectContent>
                     {students.map((student) => (
                       <SelectItem key={student.id} value={student.name}>
-                        {student.studentNumber}번 {student.name}
+                        {student.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

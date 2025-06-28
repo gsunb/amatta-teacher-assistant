@@ -129,8 +129,7 @@ export default function StudentReports() {
                     >
                       <div className="flex items-center space-x-2">
                         <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{student.studentNumber}번</span>
-                        <span>{student.name}</span>
+                        <span className="font-medium">{student.name}</span>
                       </div>
                     </div>
                   ))}
