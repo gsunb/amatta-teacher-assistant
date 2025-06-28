@@ -31,13 +31,16 @@ function Router() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <Switch>
-        {!isAuthenticated ? (
+      {!isAuthenticated ? (
+        <Switch>
           <Route path="/" component={Landing} />
-        ) : (
-          <>
-            <Sidebar />
-            <div className="md:pl-64">
+          <Route component={NotFound} />
+        </Switch>
+      ) : (
+        <>
+          <Sidebar />
+          <div className="md:pl-64">
+            <Switch>
               <Route path="/" component={Home} />
               <Route path="/schedules" component={Schedules} />
               <Route path="/records" component={Records} />
@@ -50,12 +53,12 @@ function Router() {
               <Route path="/attendance" component={Attendance} />
               <Route path="/data-management" component={DataManagement} />
               <Route path="/settings" component={Settings} />
-            </div>
-            <ChatBot />
-          </>
-        )}
-        <Route component={NotFound} />
-      </Switch>
+              <Route component={NotFound} />
+            </Switch>
+          </div>
+          <ChatBot />
+        </>
+      )}
     </div>
   );
 }
