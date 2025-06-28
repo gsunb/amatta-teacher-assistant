@@ -138,6 +138,7 @@ export const insertScheduleSchema = createInsertSchema(schedules).omit({
   id: true,
   userId: true,
   createdAt: true,
+  recurringParentId: true,
 });
 
 export const insertRecordSchema = createInsertSchema(records).omit({

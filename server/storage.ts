@@ -25,7 +25,7 @@ import {
   type InsertBackup,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -35,7 +35,10 @@ export interface IStorage {
   // Schedule operations
   getSchedules(userId: string): Promise<Schedule[]>;
   createSchedule(userId: string, schedule: InsertSchedule): Promise<Schedule>;
+  updateSchedule(userId: string, id: number, updates: Partial<InsertSchedule>): Promise<Schedule>;
   deleteSchedule(userId: string, id: number): Promise<void>;
+  completeSchedule(userId: string, id: number): Promise<void>;
+  getUpcomingSchedules(userId: string, days: number): Promise<Schedule[]>;
 
   // Record operations
   getRecords(userId: string): Promise<Record[]>;
@@ -105,17 +108,103 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSchedule(userId: string, schedule: InsertSchedule): Promise<Schedule> {
-    const [newSchedule] = await db
-      .insert(schedules)
-      .values({ ...schedule, userId })
+    // Handle recurring schedules
+    if (schedule.isRecurring && schedule.recurringType && schedule.recurringEndDate) {
+      const scheduleData = { ...schedule, userId };
+      const createdSchedules = [];
+      
+      const startDate = new Date(schedule.date);
+      const endDate = new Date(schedule.recurringEndDate);
+      let currentDate = new Date(startDate);
+      
+      while (currentDate <= endDate) {
+        const [newSchedule] = await db
+          .insert(schedules)
+          .values({ 
+            ...scheduleData, 
+            date: currentDate.toISOString().split('T')[0],
+            recurringParentId: createdSchedules.length === 0 ? null : createdSchedules[0].id
+          })
+          .returning();
+        
+        createdSchedules.push(newSchedule);
+        
+        // Increment date based on recurring type
+        switch (schedule.recurringType) {
+          case 'daily':
+            currentDate.setDate(currentDate.getDate() + 1);
+            break;
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+        }
+      }
+      
+      // Update parent ID for all schedules after first one
+      if (createdSchedules.length > 1) {
+        await db
+          .update(schedules)
+          .set({ recurringParentId: createdSchedules[0].id })
+          .where(
+            and(
+              eq(schedules.userId, userId),
+              inArray(schedules.id, createdSchedules.slice(1).map(s => s.id))
+            )
+          );
+      }
+      
+      return createdSchedules[0];
+    } else {
+      const [newSchedule] = await db
+        .insert(schedules)
+        .values({ ...schedule, userId })
+        .returning();
+      return newSchedule;
+    }
+  }
+
+  async updateSchedule(userId: string, id: number, updates: Partial<InsertSchedule>): Promise<Schedule> {
+    const [updatedSchedule] = await db
+      .update(schedules)
+      .set(updates)
+      .where(and(eq(schedules.id, id), eq(schedules.userId, userId)))
       .returning();
-    return newSchedule;
+    return updatedSchedule;
   }
 
   async deleteSchedule(userId: string, id: number): Promise<void> {
     await db
       .delete(schedules)
       .where(and(eq(schedules.id, id), eq(schedules.userId, userId)));
+  }
+
+  async completeSchedule(userId: string, id: number): Promise<void> {
+    await db
+      .update(schedules)
+      .set({ isCompleted: true })
+      .where(and(eq(schedules.id, id), eq(schedules.userId, userId)));
+  }
+
+  async getUpcomingSchedules(userId: string, days: number): Promise<Schedule[]> {
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + days);
+    
+    return await db
+      .select()
+      .from(schedules)
+      .where(
+        and(
+          eq(schedules.userId, userId),
+          eq(schedules.isCompleted, false),
+          gte(schedules.date, today.toISOString().split('T')[0]),
+          lte(schedules.date, futureDate.toISOString().split('T')[0])
+        )
+      )
+      .orderBy(asc(schedules.date), asc(schedules.time));
   }
 
   // Record operations
