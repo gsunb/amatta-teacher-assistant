@@ -518,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             case 'schedule':
               const schedule = await storage.createSchedule(userId, {
                 title: action.data.title,
-                date: action.data.date,
+                date: action.data.date || new Date().toISOString().split('T')[0],
                 time: action.data.time || undefined,
                 endTime: action.data.endTime || undefined,
                 description: action.data.description || undefined,

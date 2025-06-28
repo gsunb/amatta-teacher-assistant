@@ -62,7 +62,7 @@ export const records = pgTable("records", {
   userId: varchar("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  studentId: integer("student_id").references(() => students.id),
+  studentIds: integer("student_ids").array(),
   date: date("date").notNull(),
   severity: varchar("severity", { enum: ["low", "medium", "high"] }).default("medium"),
   createdAt: timestamp("created_at").defaultNow(),

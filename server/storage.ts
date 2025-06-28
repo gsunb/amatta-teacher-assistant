@@ -213,11 +213,37 @@ export class DatabaseStorage implements IStorage {
 
   // Record operations
   async getRecords(userId: string): Promise<Record[]> {
-    return await db
+    const recordsList = await db
       .select()
       .from(records)
       .where(eq(records.userId, userId))
       .orderBy(desc(records.date), desc(records.createdAt));
+    
+    // Join with student data to get names
+    const recordsWithStudents = await Promise.all(
+      recordsList.map(async (record) => {
+        if (record.studentIds && record.studentIds.length > 0) {
+          const studentsList = await db
+            .select()
+            .from(students)
+            .where(and(
+              eq(students.userId, userId),
+              inArray(students.id, record.studentIds)
+            ));
+          
+          return {
+            ...record,
+            studentNames: studentsList.map(s => s.name),
+          };
+        }
+        return {
+          ...record,
+          studentNames: [],
+        };
+      })
+    );
+    
+    return recordsWithStudents;
   }
 
   async createRecord(userId: string, record: InsertRecord): Promise<Record> {
