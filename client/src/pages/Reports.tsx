@@ -266,28 +266,48 @@ ${students.map(s => {
                 };
               })
               .filter(s => s.isFieldTripAlert || s.isAttendanceAlert)
-              .sort((a, b) => b.avgScore - a.avgScore)
-              .slice(0, 5);
+              .sort((a, b) => b.totalIssues - a.totalIssues)
+              .slice(0, 10);
 
-              return studentPerformance.length > 0 ? (
+              return alertStudents.length > 0 ? (
                 <div className="space-y-3">
-                  {studentPerformance.map((perf, index) => (
-                    <div key={perf.student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-lg font-bold text-primary">#{index + 1}</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{perf.student.name}</p>
-                          <p className="text-sm text-gray-600">{perf.assessmentCount}개 평가</p>
+                  {alertStudents.map((student) => (
+                    <div key={student.student.id} className="p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <UserX className="h-4 w-4 text-orange-600" />
+                          <span className="font-medium text-gray-900">
+                            {student.student.studentNumber}번 {student.student.name}
+                          </span>
+                        </div>
+                        <div className="flex space-x-1">
+                          {student.isFieldTripAlert && (
+                            <Badge variant="destructive" className="text-xs">
+                              체험학습 주의
+                            </Badge>
+                          )}
+                          {student.isAttendanceAlert && (
+                            <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                              출결 주의
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      <span className="text-lg font-bold text-green-600">
-                        {perf.avgScore.toFixed(1)}%
-                      </span>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                        <div>지각: {student.lateCount}회</div>
+                        <div>조퇴: {student.earlyLeaveCount}회</div>
+                        <div>결석: {student.absentCount}회</div>
+                        <div>체험학습: {student.fieldTripCount}/19일</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">평가 데이터가 없습니다.</p>
+                <div className="text-center py-6">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500">출결 주의 학생이 없습니다.</p>
+                  <p className="text-sm text-gray-400">훌륭한 학급 관리입니다!</p>
+                </div>
               );
             })()}
           </CardContent>
