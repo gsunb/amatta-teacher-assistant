@@ -499,7 +499,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserConsent(userId: string, consentType: string, isConsented: boolean): Promise<void> {
     const now = new Date();
-    await db
+    const result = await db
       .update(userConsents)
       .set({
         isConsented,
@@ -507,6 +507,11 @@ export class DatabaseStorage implements IStorage {
         withdrawnAt: !isConsented ? now : null,
       })
       .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consentType)));
+    
+    // If no rows were updated, throw an error to trigger creation
+    if (result.rowCount === 0) {
+      throw new Error(`No consent record found for user ${userId} and type ${consentType}`);
+    }
   }
 
   async hasRequiredConsents(userId: string): Promise<boolean> {

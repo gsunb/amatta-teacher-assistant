@@ -350,28 +350,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/user/consents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const consentData = req.body;
+      const { consents } = req.body;
 
-      // Create or update consents
-      for (const [consentType, isConsented] of Object.entries(consentData)) {
-        try {
-          // Try to update existing consent
-          await storage.updateUserConsent(userId, consentType, isConsented as boolean);
-        } catch {
-          // If no existing consent, create new one
-          await storage.createUserConsent(userId, {
-            consentType,
-            consentVersion: "1.0",
-            isConsented: isConsented as boolean,
-            consentedAt: isConsented ? new Date() : null,
-          });
-        }
+      console.log("Processing consents for user:", userId);
+      console.log("Consent data:", consents);
+
+      // Create or update consents using upsert pattern
+      for (const consent of consents) {
+        console.log("Processing consent:", consent.consentType, "=", consent.isConsented);
+        
+        // Use INSERT ... ON CONFLICT DO UPDATE pattern
+        await storage.createUserConsent(userId, {
+          consentType: consent.consentType,
+          consentVersion: "1.0",
+          isConsented: consent.isConsented,
+          consentedAt: consent.isConsented ? new Date() : null,
+          withdrawnAt: !consent.isConsented ? new Date() : null,
+        });
       }
 
       res.json({ message: "Consents updated successfully" });
     } catch (error) {
       console.error("Error updating consents:", error);
-      res.status(500).json({ message: "Failed to update consents" });
+      res.status(500).json({ message: "Failed to update consents", error: String(error) });
     }
   });
 
