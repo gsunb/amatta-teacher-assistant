@@ -419,13 +419,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create user
+      // Create user (password will be hashed in storage layer)
       const user = await storage.createEmailUser({
         email,
-        password: hashedPassword,
+        password,
         firstName,
         lastName,
       });

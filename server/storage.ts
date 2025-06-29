@@ -35,6 +35,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -139,7 +140,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmailUser(userData: { email: string; password: string; firstName?: string; lastName?: string }): Promise<User> {
-    const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const userId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
