@@ -89,9 +89,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       });
       if (data.resetLink) {
         // Open reset link in new tab for development
-        setTimeout(() => {
-          window.open(data.resetLink, '_blank');
-        }, 100);
+        const newWindow = window.open(data.resetLink, '_blank', 'noopener,noreferrer');
+        if (!newWindow) {
+          // Fallback if popup blocked
+          toast({
+            title: "팝업 차단됨",
+            description: `링크를 수동으로 열어주세요: ${data.resetLink}`,
+            duration: 10000,
+          });
+        }
       }
       setMode('email-login');
     },
