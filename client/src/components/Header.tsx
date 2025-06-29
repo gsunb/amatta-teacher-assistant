@@ -2,7 +2,20 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Settings, Menu, X } from "lucide-react";
+import { 
+  Settings, 
+  Menu, 
+  X, 
+  Home,
+  Calendar,
+  FileText,
+  MessageSquare,
+  ClipboardList,
+  Users,
+  BarChart3,
+  Database,
+  GraduationCap
+} from "lucide-react";
 import amattaLogo from "@/assets/amatta-logo.png";
 
 export default function Header() {
@@ -11,16 +24,15 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: "홈", href: "/" },
-    { name: "일정 관리", href: "/schedules" },
-    { name: "누가 기록", href: "/records" },
-    { name: "성과 평가", href: "/assessments" },
-    { name: "학급 관리", href: "/classes" },
-    { name: "보고서", href: "/reports" },
-    { name: "학생 보고서", href: "/student-reports" },
-    { name: "학부모 소통", href: "/parent-communications" },
-    { name: "알림", href: "/notifications" },
-    { name: "데이터 관리", href: "/data-management" },
+    { name: "홈", href: "/", icon: Home },
+    { name: "일정 관리", href: "/schedules", icon: Calendar },
+    { name: "누가 기록", href: "/records", icon: FileText },
+    { name: "평가 관리", href: "/assessments", icon: ClipboardList },
+    { name: "학급 관리", href: "/classes", icon: GraduationCap },
+    { name: "학급 통계", href: "/reports", icon: BarChart3 },
+    { name: "학생 보고서", href: "/student-reports", icon: Users },
+    { name: "학부모 소통", href: "/parent-communications", icon: MessageSquare },
+    { name: "데이터 관리", href: "/data-management", icon: Database },
   ];
 
   const isCurrentPage = (href: string) => {
@@ -30,8 +42,8 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
+      <div className="px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
@@ -100,37 +112,46 @@ export default function Header() {
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
-            {navigation.map((item) => (
+          <div className="px-4 pt-2 pb-4 bg-white border-t border-gray-200 shadow-lg">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {navigation.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all ${
+                      isCurrentPage(item.href)
+                        ? "bg-blue-100 text-blue-600"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <IconComponent className="h-6 w-6 mb-2" />
+                    <span className="text-sm font-medium text-center">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="border-t border-gray-200 pt-4 space-y-3">
               <Link
-                key={item.name}
-                href={item.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  isCurrentPage(item.href)
-                    ? "text-primary"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
+                href="/settings"
+                className="flex items-center px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {item.name}
+                <Settings className="h-5 w-5 mr-3" />
+                <span className="font-medium">설정</span>
               </Link>
-            ))}
-            <Link
-              href="/settings"
-              className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              설정
-            </Link>
-            <Button
-              variant="outline"
-              className="ml-3 mt-2"
-              onClick={() => {
-                window.location.href = "/api/logout";
-              }}
-            >
-              로그아웃
-            </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  window.location.href = "/api/logout";
+                }}
+              >
+                로그아웃
+              </Button>
+            </div>
           </div>
         </div>
       )}

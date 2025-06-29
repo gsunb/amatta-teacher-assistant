@@ -20,6 +20,7 @@ import Settings from "@/pages/Settings";
 import ParentCommunications from "@/pages/ParentCommunications";
 import DataManagement from "@/pages/DataManagement";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ChatBot from "@/components/ChatBot";
 
@@ -41,8 +42,9 @@ function Router() {
         </Switch>
       ) : (
         <>
+          <Header />
           <Sidebar />
-          <div className="md:pl-64">
+          <div className="md:pl-64 pt-16 md:pt-0">
             <Switch>
               <Route path="/" component={Home} />
               <Route path="/schedules" component={Schedules} />
