@@ -1,12 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "node build.js",
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["server/**", "shared/**", "client/dist/**"]
-      }
+      "src": "server/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server/index.ts"
     }
   ]
 }
