@@ -493,6 +493,15 @@ export class DatabaseStorage implements IStorage {
     const [userConsent] = await db
       .insert(userConsents)
       .values({ ...consent, userId })
+      .onConflictDoUpdate({
+        target: [userConsents.userId, userConsents.consentType],
+        set: {
+          isConsented: consent.isConsented,
+          consentVersion: consent.consentVersion,
+          consentedAt: consent.consentedAt,
+          withdrawnAt: consent.withdrawnAt,
+        },
+      })
       .returning();
     return userConsent;
   }
