@@ -26,7 +26,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const loginMutation = useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       console.log("Attempting login with:", data.email);
-      const result = await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      const result = await response.json();
       console.log("Login result:", result);
       return result;
     },
@@ -36,13 +37,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         title: "로그인 성공",
         description: "환영합니다!",
       });
+      onClose();
       window.location.reload();
     },
     onError: (error: Error) => {
       console.error("Login error:", error);
       toast({
         title: "로그인 실패",
-        description: error.message,
+        description: error.message.replace(/^\d+:\s*/, ""),
         variant: "destructive",
       });
     },
@@ -50,7 +52,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const signupMutation = useMutation({
     mutationFn: async (data: { email: string; password: string; firstName?: string; lastName?: string }) => {
-      return await apiRequest("POST", "/api/auth/signup", data);
+      const response = await apiRequest("POST", "/api/auth/register", { 
+        ...data, 
+        confirmPassword: data.password 
+      });
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -63,7 +69,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     onError: (error: Error) => {
       toast({
         title: "회원가입 실패",
-        description: error.message,
+        description: error.message.replace(/^\d+:\s*/, ""),
         variant: "destructive",
       });
     },
@@ -71,18 +77,21 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: { email: string }) => {
-      return await apiRequest("POST", "/api/auth/forgot-password", data);
+      const response = await apiRequest("POST", "/api/auth/forgot-password", data);
+      return await response.json();
     },
     onSuccess: (data: any) => {
       console.log("Password reset response:", data);
       toast({
-        title: "비밀번호 재설정 링크 생성됨",
+        title: "비밀번호 재설정",
         description: data.resetLink ? "재설정 링크를 새 탭에서 열었습니다." : data.message,
         duration: 5000,
       });
       if (data.resetLink) {
         // Open reset link in new tab for development
-        window.open(data.resetLink, '_blank');
+        setTimeout(() => {
+          window.open(data.resetLink, '_blank');
+        }, 100);
       }
       setMode('email-login');
     },
@@ -90,7 +99,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       console.error("Password reset error:", error);
       toast({
         title: "오류",
-        description: error.message,
+        description: error.message.replace(/^\d+:\s*/, ""),
         variant: "destructive",
       });
     },

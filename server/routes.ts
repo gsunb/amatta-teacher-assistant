@@ -510,6 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Login error:", err);
           return res.status(500).json({ message: "로그인 중 오류가 발생했습니다." });
         }
+        console.log("User logged in successfully, session ID:", req.sessionID);
         res.json({ message: "로그인 성공", user: { id: user.id, email: user.email } });
       });
 
