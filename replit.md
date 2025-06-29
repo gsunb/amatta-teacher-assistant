@@ -189,6 +189,7 @@ Amatta is a Progressive Web Application (PWA) designed as a comprehensive AI ass
 - June 29, 2025. Fixed critical email authentication bug: resolved password hashing conflicts, implemented proper bcrypt import, and completed password recovery system with forgot password functionality and reset tokens
 - June 29, 2025. Post-authentication UI improvements: fixed duplicate "학년" text in class management, added user name display in profile section with logout functionality, improved password reset link handling
 - June 29, 2025. Smart onboarding system: automatically detects existing classes and skips onboarding for returning users, improved class list display format to show "학년반" structure correctly
+- June 29, 2025. Vercel deployment preparation: created deployment configuration files, environment variable templates, Google OAuth redirect URI setup guide, and comprehensive deployment documentation to resolve redirect_uri_mismatch issues
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
