@@ -217,7 +217,7 @@ export default function Home() {
                   </div>
                   <span className="text-sm text-gray-500">총 {assessments.length}개</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">성과 평가</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">평가 관리</h3>
                 <p className="text-sm text-gray-600">학생들의 학업 성과를 업로드하고 분석하세요</p>
               </CardContent>
             </Card>

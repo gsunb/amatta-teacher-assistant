@@ -258,8 +258,9 @@ export default function Assessments() {
     );
   }
 
-  // Get unique subjects and exam types for filters
+  // Get unique subjects, units and exam types for filters
   const uniqueSubjects = Array.from(new Set(assessments.map(a => a.subject)));
+  const uniqueUnits = Array.from(new Set(assessments.map(a => a.unit)));
   const uniqueExamTypes = Array.from(new Set(assessments.map(a => a.task)));
 
   // Filter assessments based on selected filters

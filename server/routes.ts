@@ -214,18 +214,43 @@ function extractStudentName(text: string): string {
 }
 
 function extractStudentNames(text: string): string[] {
-  // Extract multiple Korean names with improved patterns
-  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|님|학생|,|\s)/g;
-  const matches = text.match(namePattern);
-  if (matches && matches.length > 0) {
-    const cleanedNames = matches.map(match => match.replace(/\s|의|이|가|를|을|와|과|에게|한테|님|학생|,/g, ''));
-    return Array.from(new Set(cleanedNames));
+  const names: string[] = [];
+  
+  // Pattern 1: Names with Korean particles (이/가, 을/를, 에게, 한테, etc.)
+  const particlePattern = /([가-힣]{2,3})(?:이|가|를|을|와|과|에게|한테|님|학생)/g;
+  let match;
+  while ((match = particlePattern.exec(text)) !== null) {
+    names.push(match[1]);
   }
   
-  // Fallback: try to find standalone Korean names
-  const standalonePattern = /([가-힣]{2,3})/g;
-  const standaloneMatches = text.match(standalonePattern);
-  return standaloneMatches ? Array.from(new Set(standaloneMatches)) : [];
+  // Pattern 2: Names followed by possessive marker "의" or prepositions
+  const possessivePattern = /([가-힣]{2,3})(?:의|에서|에|과|와)/g;
+  particlePattern.lastIndex = 0; // Reset regex state
+  while ((match = possessivePattern.exec(text)) !== null) {
+    names.push(match[1]);
+  }
+  
+  // Pattern 3: Names in context like "대해" or "대하여"
+  const contextPattern = /([가-힣]{2,3})\s*(?:에\s*)?대해/g;
+  while ((match = contextPattern.exec(text)) !== null) {
+    names.push(match[1]);
+  }
+  
+  // Pattern 4: Names followed by common verbs or actions
+  const actionPattern = /([가-힣]{2,3})(?:가|이)\s*(?:했|했다|했고|했는데|했으며|있다|있고|말했|소리|화가|장난)/g;
+  while ((match = actionPattern.exec(text)) !== null) {
+    names.push(match[1]);
+  }
+  
+  // Remove duplicates and filter out common non-name words
+  const uniqueNames = Array.from(new Set(names));
+  const filteredNames = uniqueNames.filter(name => {
+    // Filter out common words that aren't names
+    const commonWords = ['이야기', '문제', '상황', '경우', '때문', '관련', '발생', '처리'];
+    return !commonWords.includes(name);
+  });
+  
+  return filteredNames;
 }
 
 function splitMultipleEvents(text: string): string[] {
