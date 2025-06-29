@@ -510,7 +510,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async hasRequiredConsents(userId: string): Promise<boolean> {
-    const requiredConsentTypes = ['service_terms', 'privacy_policy', 'replit_oauth', 'data_responsibility'];
+    const requiredConsentTypes = ['service_terms', 'privacy_policy', 'oauth_services', 'data_responsibility'];
     
     const consents = await db
       .select()

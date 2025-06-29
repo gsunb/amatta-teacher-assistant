@@ -32,10 +32,10 @@ Amatta 교사 AI 도우미는 다음의 목적으로 개인정보를 처리합�
         id: 'items',
         title: '수집하는 개인정보 항목',
         content: `
-1. 교사 정보 (Replit OAuth를 통해 자동 수집)
-   - 필수: Replit 사용자 ID, 이메일
-   - 선택: 이름(성/이름), 프로필 사진 URL
-   - 자동수집: 계정 생성/수정 시간
+1. 교사 정보 (OAuth 인증을 통해 자동 수집)
+   - Replit 로그인: 사용자 ID, 이메일, 이름, 프로필 사진
+   - Google 로그인: Google ID, 이메일, 이름, 프로필 사진
+   - 자동수집: 계정 생성/수정 시간, 로그인 시간
 
 2. 학생 정보 (교사가 직접 입력)
    - 필수: 이름, 학번, 소속 반
@@ -62,7 +62,12 @@ Amatta 교사 AI 도우미는 다음의 목적으로 개인정보를 처리합�
    - 목적: 안전한 로그인 및 계정 인증
    - 해당 업체 개인정보처리방침: https://replit.com/privacy
 
-2. Google Gemini AI (선택적 이용)
+2. Google LLC (OAuth 인증 서비스)
+   - 제공받는 정보: Google ID, 이메일, 이름, 프로필 사진
+   - 목적: 간편 로그인 및 계정 인증
+   - 해당 업체 개인정보처리방침: https://policies.google.com/privacy
+
+3. Google Gemini AI (선택적 이용)
    - 제공하는 정보: 자연어 명령 텍스트 (개인정보 제외)
    - 목적: AI 기반 업무 자동화 지원
    - 해당 업체 개인정보처리방침: https://policies.google.com/privacy
@@ -204,14 +209,15 @@ export const TEACHER_CONSENT_ITEMS = [
     ]
   },
   {
-    id: 'replit_oauth',
-    title: 'Replit OAuth 인증 서비스 이용 동의',
-    description: 'Replit을 통한 안전한 로그인 서비스 이용에 동의합니다.',
+    id: 'oauth_services',
+    title: 'OAuth 인증 서비스 이용 동의',
+    description: 'Replit 또는 Google을 통한 안전한 로그인 서비스 이용에 동의합니다.',
     required: true,
     details: [
-      'Replit 계정을 통한 안전한 인증',
-      'Replit으로부터 기본 프로필 정보 제공받기',
-      'OAuth 2.0 표준 보안 프로토콜 사용'
+      'Replit/Google 계정을 통한 안전한 인증',
+      '선택한 플랫폼으로부터 기본 프로필 정보 제공받기',
+      'OAuth 2.0 표준 보안 프로토콜 사용',
+      '언제든지 다른 로그인 방식으로 변경 가능'
     ]
   },
   {
