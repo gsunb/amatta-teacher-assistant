@@ -48,7 +48,7 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
       console.log("Submitting consents:", consents);
       
       try {
-        const response = await apiRequest('/api/user/consents', 'POST', { consents });
+        const response = await apiRequest('POST', '/api/user/consents', { consents });
         console.log("Consent response:", response);
         return response;
       } catch (error) {
