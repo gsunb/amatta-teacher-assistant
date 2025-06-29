@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Eye, FileText, Key, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
@@ -76,7 +76,7 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center text-2xl">
             <Shield className="w-7 h-7 mr-3 text-blue-600" />
@@ -87,9 +87,9 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
           </p>
         </DialogHeader>
 
-        <div className="relative flex-1">
-          <ScrollArea className="h-full px-6 max-h-[calc(90vh-180px)]">
-            <div className="space-y-6 pb-6">
+        <div className="relative flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-6 pb-8">
               {/* Service Terms Preview */}
             <Card className="border-blue-200">
               <CardHeader className="pb-3">
@@ -207,13 +207,12 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
                 </Card>
               ))}
             </div>
-            </div>
-          </ScrollArea>
+          </div>
           
           {/* Scroll indicator */}
-          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none flex items-end justify-center pb-1">
-            <div className="text-xs text-gray-400 animate-bounce">
-              ↓ 아래로 스크롤하여 모든 내용을 확인해 주세요
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none flex items-center justify-center">
+            <div className="text-xs text-gray-500 animate-pulse bg-white/80 px-3 py-1 rounded-full border border-gray-200">
+              ↓ 스크롤하여 더 보기
             </div>
           </div>
         </div>
