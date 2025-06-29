@@ -1,23 +1,21 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "installCommand": "npm install",
+  "builds": [],
+  "outputDirectory": "api",
   "functions": {
     "api/index.js": {
-      "runtime": "@vercel/node@3.1.5"
-    },
-    "api/health.js": {
-      "runtime": "@vercel/node@3.1.5"
+      "runtime": "@vercel/node@3.1.5",
+      "includeFiles": []
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/health",
-      "destination": "/api/health.js"
+      "src": "/api/health",
+      "dest": "/api/health.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
+      "src": "/(.*)",
+      "dest": "/api/index.js"
     }
   ]
 }

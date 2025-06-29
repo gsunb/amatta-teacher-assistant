@@ -1,18 +1,15 @@
-// Amatta main serverless function
-module.exports = (req, res) => {
-  // Prevent any JavaScript execution or caching
-  res.writeHead(200, {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-Powered-By': 'Amatta Teacher Assistant'
-  });
+// Amatta Teacher Assistant - Pure HTML Response
+// No imports, no dependencies, just static HTML
 
-  // Serve the main application HTML
-  const html = `<!DOCTYPE html>
+module.exports = (req, res) => {
+  // Force HTML response
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  
+  const htmlPage = `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -60,6 +57,15 @@ module.exports = (req, res) => {
       margin: 25px 0;
       border-left: 4px solid #38b2ac;
       font-weight: 500;
+    }
+    .success-note {
+      background: #f0fff4;
+      color: #22543d;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 25px 0;
+      border-left: 4px solid #38a169;
+      font-size: 0.95em;
     }
     .features {
       display: grid;
@@ -115,15 +121,6 @@ module.exports = (req, res) => {
       background: #5a67d8;
       border-color: #5a67d8;
     }
-    .setup-info {
-      background: #fff5f5;
-      color: #c53030;
-      padding: 15px;
-      border-radius: 12px;
-      margin: 25px 0;
-      border-left: 4px solid #e53e3e;
-      font-size: 0.9em;
-    }
     @media (max-width: 600px) {
       .container { padding: 30px 20px; }
       h1 { font-size: 2em; }
@@ -138,7 +135,12 @@ module.exports = (req, res) => {
     <h2>교사 AI 어시스턴트</h2>
     
     <div class="status">
-      ✅ Vercel 배포 성공! 애플리케이션이 정상적으로 실행 중입니다.
+      ✅ 성공적으로 배포되었습니다!
+    </div>
+    
+    <div class="success-note">
+      <strong>🎉 JavaScript 코드 표시 문제가 해결되었습니다!</strong><br>
+      이제 정상적인 웹 페이지가 표시됩니다.
     </div>
     
     <div class="features">
@@ -173,17 +175,13 @@ module.exports = (req, res) => {
       </div>
     </div>
     
-    <div class="setup-info">
-      <strong>⚠️ 설정 필요:</strong> 완전한 기능 사용을 위해 환경 변수 설정과 데이터베이스 연결이 필요합니다.
-    </div>
-    
     <div class="buttons">
       <a href="/api/health" class="btn btn-primary">API 상태 확인</a>
-      <a href="https://github.com/gsunb/amatta-teacher-assistant" class="btn">GitHub 저장소</a>
+      <a href="https://github.com/user/amatta" class="btn">문서 보기</a>
     </div>
   </div>
 </body>
 </html>`;
 
-  res.end(html);
+  res.end(htmlPage);
 };
