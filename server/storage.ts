@@ -139,6 +139,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmailUser(userData: { email: string; password: string; firstName?: string; lastName?: string }): Promise<User> {
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     const userId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const [user] = await db
@@ -146,7 +148,7 @@ export class DatabaseStorage implements IStorage {
       .values({
         id: userId,
         email: userData.email,
-        password: userData.password,
+        password: hashedPassword,
         firstName: userData.firstName || null,
         lastName: userData.lastName || null,
         authProvider: "email",
