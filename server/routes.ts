@@ -321,6 +321,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ available: isGoogleAuthAvailable() });
   });
 
+  // Email/Password Registration
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { email, password, confirmPassword, firstName, lastName } = req.body;
+
+      // Basic validation
+      if (!email || !password || !confirmPassword) {
+        return res.status(400).json({ message: "이메일, 비밀번호, 비밀번호 확인은 필수입니다." });
+      }
+
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "비밀번호는 최소 6자 이상이어야 합니다." });
+      }
+
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "이미 사용 중인 이메일입니다." });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await storage.createEmailUser({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+      });
+
+      // Create session-compatible user object
+      const sessionUser = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_image_url: user.profileImageUrl,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+        },
+        access_token: null,
+        refresh_token: null,
+        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+      };
+
+      // Log user in
+      req.login(sessionUser, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "회원가입은 완료되었지만 로그인에 실패했습니다." });
+        }
+        res.json({ message: "회원가입이 완료되었습니다.", user: { id: user.id, email: user.email } });
+      });
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "회원가입 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Email/Password Login
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "이메일과 비밀번호를 입력해주세요." });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      // Check password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      // Create session-compatible user object
+      const sessionUser = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_image_url: user.profileImageUrl,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+        },
+        access_token: null,
+        refresh_token: null,
+        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+      };
+
+      // Log user in
+      req.login(sessionUser, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "로그인 중 오류가 발생했습니다." });
+        }
+        res.json({ message: "로그인 성공", user: { id: user.id, email: user.email } });
+      });
+
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "로그인 중 오류가 발생했습니다." });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

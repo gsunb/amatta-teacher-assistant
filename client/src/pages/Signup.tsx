@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,17 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { FaGoogle } from "react-icons/fa";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Chrome } from "lucide-react";
 
 export default function Signup() {
+  const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    name: ""
+    firstName: "",
+    lastName: ""
   });
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,43 +32,58 @@ export default function Signup() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const registerMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest('POST', '/api/auth/register', data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "회원가입 성공",
+        description: data.message,
+      });
+      setLocation("/");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "회원가입 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      toast({
+        title: "입력 오류",
+        description: "필수 항목을 모두 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "오류",
+        title: "입력 오류",
         description: "비밀번호가 일치하지 않습니다.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     if (formData.password.length < 6) {
       toast({
-        title: "오류",
-        description: "비밀번호는 6자 이상이어야 합니다.",
-        variant: "destructive"
+        title: "입력 오류",
+        description: "비밀번호는 최소 6자 이상이어야 합니다.",
+        variant: "destructive",
       });
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Regular signup would be implemented here
-      toast({
-        title: "회원가입 완료",
-        description: "계정이 성공적으로 생성되었습니다.",
-      });
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "회원가입에 실패했습니다. 다시 시도해주세요.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    registerMutation.mutate(formData);
   };
 
   const handleGoogleSignup = () => {
@@ -89,16 +108,28 @@ export default function Signup() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Google Signup */}
-          <Button
-            onClick={handleGoogleSignup}
-            variant="outline"
-            className="w-full"
-            type="button"
-          >
-            <FaGoogle className="w-4 h-4 mr-2" />
-            Google로 가입하기
-          </Button>
+          {/* OAuth Signup Options */}
+          <div className="space-y-3">
+            <Button
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300"
+              asChild
+            >
+              <a href="/api/login">
+                <Chrome className="w-4 h-4 mr-2" />
+                Replit으로 가입하기
+              </a>
+            </Button>
+            
+            <Button
+              onClick={handleGoogleSignup}
+              variant="outline"
+              className="w-full"
+              type="button"
+            >
+              <FaGoogle className="w-4 h-4 mr-2" />
+              Google로 가입하기
+            </Button>
+          </div>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -111,17 +142,29 @@ export default function Signup() {
 
           {/* Regular Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">이름</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="홍길동"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">성</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  placeholder="홍"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">이름</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  placeholder="길동"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -167,23 +210,38 @@ export default function Signup() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="비밀번호를 다시 입력"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="비밀번호를 다시 입력"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full"
-              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              disabled={registerMutation.isPending}
             >
-              {isLoading ? "가입 중..." : "회원가입"}
+              {registerMutation.isPending ? "가입 중..." : "회원가입"}
             </Button>
           </form>
 
