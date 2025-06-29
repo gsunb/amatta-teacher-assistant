@@ -127,14 +127,19 @@ export default function Home() {
         <LoadingOverlay message="AI가 처리 중입니다..." />
       )}
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            안녕하세요, {(user as any)?.firstName || (user as any)?.email || "선생"}님!
-          </h2>
-          <p className="text-lg text-gray-600">기록할 일정, 사건, 성적을 편하게 입력하세요.</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 relative">
+        {/* Background Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        
+        <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              안녕하세요, {(user as any)?.firstName || (user as any)?.email || "선생"}님!
+            </h2>
+            <p className="text-lg text-gray-600">기록할 일정, 사건, 성적을 편하게 입력하세요.</p>
+          </div>
 
         {/* Main AI Input Section */}
         <Card className="mb-8">
@@ -324,7 +329,8 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-      </main>
+        </main>
+      </div>
     </>
   );
 }

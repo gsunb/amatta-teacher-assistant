@@ -77,16 +77,16 @@ export default function Landing() {
             </Badge>
             
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              "아, 맞다!"가 줄어드는 순간,
-              <br />
+              교실 업무를 
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Amatta
+                자연어로 해결
               </span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              일정 관리, 누가기록, 평가 관리, 학부모 소통을 
-              <span className="font-semibold text-blue-600">자연어로 간단하게</span> 처리하는 교사 전용 AI 도구입니다.
+              <span className="font-semibold text-blue-600">"김철수가 장난을 쳤다"</span> → 자동으로 생활기록 저장<br/>
+              <span className="font-semibold text-green-600">"내일 2교시에 수학 수업"</span> → 일정 자동 등록<br/>
+              복잡한 클릭 없이, 말하는 것처럼 간단하게
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -117,21 +117,19 @@ export default function Landing() {
               </Button>
             </div>
 
-            {/* Trust Indicators */}
+            {/* Feature Highlights */}
             <div className="flex items-center justify-center space-x-8 text-sm text-gray-500 mb-16">
               <div className="flex items-center space-x-2">
-                <div className="flex">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />)}
-                </div>
-                <span>4.9/5 평점</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>베타 서비스 운영 중</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-green-500" />
-                <span>1,000+ 활성 사용자</span>
+                <span>무료 체험 가능</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-green-500" />
-                <span>99.9% 가동률</span>
+                <span>Google Gemini AI 연동</span>
               </div>
             </div>
           </div>
