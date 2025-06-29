@@ -359,7 +359,7 @@ export default function Classes() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
                     <Users className="h-5 w-5" />
-                    <span>{selectedClass.grade}학년 {selectedClass.className}반 학생 관리</span>
+                    <span>{selectedClass.grade} {selectedClass.className}반 학생 관리</span>
                   </CardTitle>
                   <div className="flex items-center space-x-2">
                     <Button

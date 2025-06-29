@@ -10,9 +10,13 @@ import {
   Database, 
   Settings,
   GraduationCap,
-  CalendarCheck
+  CalendarCheck,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import type { User } from "@shared/schema";
 import amattaLogo from "@/assets/amatta-logo.png";
 
 const navigation = [
@@ -30,6 +34,7 @@ const navigation = [
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { user } = useAuth();
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
@@ -83,15 +88,32 @@ export default function Sidebar() {
         </div>
 
         {/* User info footer */}
-        <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">👩‍🏫</span>
+        <div className="flex-shrink-0 border-t border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user?.firstName ? user.firstName.charAt(0) : user?.email?.charAt(0).toUpperCase() || '👩‍🏫'}
+                </span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-700">
+                  {user?.firstName && user?.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user?.firstName || user?.email?.split('@')[0] || '선생님'}
+                </p>
+                <p className="text-xs text-gray-500">Amatta 사용자</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">선생님</p>
-              <p className="text-xs text-gray-500">AI 어시스턴트</p>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.location.href = '/api/logout'}
+              className="p-1 h-8 w-8 hover:bg-gray-100"
+              title="로그아웃"
+            >
+              <LogOut className="h-4 w-4 text-gray-500" />
+            </Button>
           </div>
         </div>
       </div>
