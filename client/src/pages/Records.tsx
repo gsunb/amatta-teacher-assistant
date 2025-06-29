@@ -35,8 +35,8 @@ export default function Records() {
     queryKey: ["/api/students"],
   });
 
-  // Debug: Log students data to check structure
-  console.log("Students data:", students);
+  // Ensure students have proper name field
+  const validStudents = students.filter(student => student && student.name);
 
   // Create record mutation
   const createRecordMutation = useMutation({
@@ -178,7 +178,7 @@ export default function Records() {
 
   const getStudentName = (studentId: number | null) => {
     if (!studentId) return "학생 미지정";
-    const student = students.find(s => s.id === studentId);
+    const student = validStudents.find(s => s.id === studentId);
     return student ? student.name : "학생 미지정";
   };
 
@@ -211,7 +211,7 @@ export default function Records() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">전체 학생</SelectItem>
-              {students.map((student) => (
+              {validStudents.map((student) => (
                 <SelectItem key={student.id} value={student.id.toString()}>
                   {student.name}
                 </SelectItem>
@@ -259,9 +259,9 @@ export default function Records() {
                       <SelectValue placeholder="학생을 선택하세요" />
                     </SelectTrigger>
                     <SelectContent>
-                      {students.filter(student => !newRecord.studentIds?.includes(student.id)).map((student) => (
+                      {validStudents.filter(student => !newRecord.studentIds?.includes(student.id)).map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.name || `학생 ${student.id}`}
+                          {student.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -271,7 +271,7 @@ export default function Records() {
                   {newRecord.studentIds && newRecord.studentIds.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {newRecord.studentIds.map((studentId) => {
-                        const student = students.find(s => s.id === studentId);
+                        const student = validStudents.find(s => s.id === studentId);
                         return student ? (
                           <div key={studentId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
                             {student.name}
