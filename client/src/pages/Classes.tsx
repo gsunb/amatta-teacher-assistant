@@ -310,7 +310,7 @@ export default function Classes() {
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-medium">{classItem.grade}학년 {classItem.className}반</h3>
+                          <h3 className="font-medium">{classItem.grade} {classItem.className}</h3>
                           <p className="text-sm text-gray-500">{classItem.year}년도</p>
                         </div>
                         <div className="flex items-center space-x-1">

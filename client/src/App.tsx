@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import type { Class } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Signup from "@/pages/Signup";
@@ -33,12 +34,21 @@ function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  if (isLoading) {
+  // Fetch user's classes to check if onboarding is needed
+  const { data: classes = [], isLoading: classesLoading } = useQuery<Class[]>({
+    queryKey: ["/api/classes"],
+    enabled: isAuthenticated,
+  });
+
+  if (isLoading || (isAuthenticated && classesLoading)) {
     return <LoadingOverlay message="로딩 중..." />;
   }
 
   // Check if authenticated user needs to complete consent
   const needsConsent = isAuthenticated && user && (user as any).hasRequiredConsents === false;
+  
+  // Check if user needs onboarding (no classes created yet)
+  const needsOnboarding = isAuthenticated && !needsConsent && classes.length === 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -76,7 +86,7 @@ function Router() {
             </div>
           </div>
         </>
-      ) : showOnboarding ? (
+      ) : needsOnboarding || showOnboarding ? (
         <Onboarding 
           onComplete={() => {
             setShowOnboarding(false);
