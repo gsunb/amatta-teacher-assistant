@@ -81,3 +81,26 @@
 .consent-modal-scroll::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
+
+/* Mobile optimization for consent modal */
+@media (max-width: 640px) {
+  .consent-modal-scroll {
+    scroll-padding-bottom: 120px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure dialog is properly sized on mobile */
+  [data-radix-dialog-content] {
+    max-height: 95vh !important;
+    min-height: 80vh;
+  }
+  
+  /* Better mobile button visibility */
+  .mobile-consent-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+  }
+}

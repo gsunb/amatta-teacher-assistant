@@ -88,19 +88,19 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-6 pb-4 flex-shrink-0 border-b">
-          <DialogTitle className="flex items-center text-2xl">
-            <Shield className="w-7 h-7 mr-3 text-blue-600" />
+      <DialogContent className="max-w-4xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
+          <DialogTitle className="flex items-center text-lg sm:text-2xl">
+            <Shield className="w-6 h-6 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-blue-600" />
             Amatta 서비스 이용 동의
           </DialogTitle>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             Amatta 교사 AI 도우미를 안전하게 이용하기 위한 약관 및 개인정보 처리방침입니다.
           </p>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto consent-modal-scroll">
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Service Terms Summary */}
             <Card className="border-blue-200">
               <CardHeader className="pb-3">
@@ -219,20 +219,31 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
           </div>
         </div>
 
-        <div className="p-6 pt-4 border-t bg-gray-50 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
-            <div className="text-sm text-gray-600">
+        <div className="p-4 sm:p-6 pt-4 border-t bg-gray-50 flex-shrink-0 mobile-consent-footer">
+          <div className="flex flex-col space-y-3">
+            <div className="text-xs sm:text-sm text-gray-600 text-center">
               문의: amatta.edu@gmail.com
             </div>
-            <div className="flex space-x-3 w-full sm:w-auto">
-              <Button
-                onClick={handleSubmit}
-                disabled={!allRequiredChecked || submitConsentMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none"
-              >
-                {submitConsentMutation.isPending ? "처리 중..." : "동의하고 시작하기"}
-              </Button>
-            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={!allRequiredChecked || submitConsentMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 w-full py-3 text-base font-medium"
+              size="lg"
+            >
+              {submitConsentMutation.isPending ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  처리 중...
+                </div>
+              ) : (
+                "동의하고 시작하기"
+              )}
+            </Button>
+            {!allRequiredChecked && (
+              <p className="text-xs text-red-600 text-center">
+                필수 항목에 모두 동의해 주세요
+              </p>
+            )}
           </div>
         </div>
       </DialogContent>
