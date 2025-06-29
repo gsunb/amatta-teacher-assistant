@@ -9,6 +9,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Signup from "@/pages/Signup";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import Home from "@/pages/Home";
 import Onboarding from "@/pages/Onboarding";
 import Schedules from "@/pages/Schedules";
@@ -46,6 +47,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/signup" component={Signup} />
           <Route path="/login" component={Login} />
+          <Route path="/reset-password" component={ResetPassword} />
           <Route component={NotFound} />
         </Switch>
       ) : needsConsent ? (
