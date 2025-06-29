@@ -35,6 +35,9 @@ export default function Records() {
     queryKey: ["/api/students"],
   });
 
+  // Debug: Log students data to check structure
+  console.log("Students data:", students);
+
   // Create record mutation
   const createRecordMutation = useMutation({
     mutationFn: async (record: InsertRecord) => {
@@ -258,7 +261,7 @@ export default function Records() {
                     <SelectContent>
                       {students.filter(student => !newRecord.studentIds?.includes(student.id)).map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.name}
+                          {student.name || `학생 ${student.id}`}
                         </SelectItem>
                       ))}
                     </SelectContent>

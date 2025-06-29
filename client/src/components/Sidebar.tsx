@@ -34,14 +34,16 @@ export default function Sidebar() {
       <div className="flex flex-col flex-grow pt-5 bg-white border-r border-gray-200 overflow-y-auto">
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-4 pb-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <GraduationCap className="h-6 w-6 text-white" />
-            </div>
+          <Link href="/" className="flex items-center space-x-3">
+            <img 
+              src="/attached_assets/image_1751162071875.png" 
+              alt="Amatta 로고" 
+              className="h-10 w-auto"
+            />
             <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Amatta
             </span>
-          </div>
+          </Link>
         </div>
 
         {/* Navigation */}
