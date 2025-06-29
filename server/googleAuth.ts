@@ -6,10 +6,18 @@ import { storage } from "./storage";
 export function setupGoogleAuth(app: Express) {
   // Only setup Google auth if credentials are provided
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Dynamic callback URL based on environment
+    const getCallbackURL = () => {
+      if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
+        return `https://${process.env.REPLIT_DOMAINS.split(',')[0]}/api/auth/google/callback`;
+      }
+      return 'http://localhost:5000/api/auth/google/callback';
+    };
+
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `/api/auth/google/callback`
+      callbackURL: getCallbackURL()
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
