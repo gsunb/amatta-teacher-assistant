@@ -165,7 +165,7 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
                         {'details' in item && item.details && (
                           <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded border-l-2 border-blue-200">
                             <ul className="list-disc pl-4 space-y-1">
-                              {Array.from(item.details).map((detail, idx) => (
+                              {[...item.details].map((detail, idx) => (
                                 <li key={idx}>{detail}</li>
                               ))}
                             </ul>
