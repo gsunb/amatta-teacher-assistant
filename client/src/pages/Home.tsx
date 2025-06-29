@@ -224,7 +224,7 @@ export default function Home() {
           </Link>
 
           {/* Student Roster */}
-          <Link href="/students">
+          <Link href="/classes">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">

@@ -19,11 +19,11 @@ const navigation = [
   { name: '대시보드', href: '/', icon: Home },
   { name: '일정 관리', href: '/schedules', icon: Calendar },
   { name: '누가 기록', href: '/records', icon: FileText },
-  { name: '학급 관리', href: '/classes', icon: GraduationCap },
   { name: '학부모 소통', href: '/parent-communications', icon: MessageSquare },
   { name: '평가 관리', href: '/assessments', icon: ClipboardList },
   { name: '학생 보고서', href: '/student-reports', icon: Users },
   { name: '학급 통계', href: '/reports', icon: BarChart3 },
+  { name: '학급 관리', href: '/classes', icon: GraduationCap },
   { name: '데이터 관리', href: '/data-management', icon: Database },
   { name: '설정', href: '/settings', icon: Settings },
 ];
