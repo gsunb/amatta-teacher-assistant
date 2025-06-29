@@ -1,0 +1,2084 @@
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// server/index.ts
+import express2 from "express";
+
+// server/routes.ts
+import { createServer } from "http";
+
+// shared/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  assessments: () => assessments,
+  backups: () => backups,
+  classes: () => classes,
+  insertAssessmentSchema: () => insertAssessmentSchema,
+  insertBackupSchema: () => insertBackupSchema,
+  insertClassSchema: () => insertClassSchema,
+  insertNotificationSchema: () => insertNotificationSchema,
+  insertParentCommunicationSchema: () => insertParentCommunicationSchema,
+  insertPasswordResetSchema: () => insertPasswordResetSchema,
+  insertRecordSchema: () => insertRecordSchema,
+  insertScheduleSchema: () => insertScheduleSchema,
+  insertStudentSchema: () => insertStudentSchema,
+  insertUserConsentSchema: () => insertUserConsentSchema,
+  notifications: () => notifications,
+  parentCommunications: () => parentCommunications,
+  passwordResetTokens: () => passwordResetTokens,
+  records: () => records,
+  schedules: () => schedules,
+  sessions: () => sessions,
+  students: () => students,
+  userConsents: () => userConsents,
+  users: () => users
+});
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  jsonb,
+  index,
+  serial,
+  integer,
+  date,
+  boolean
+} from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+var sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull()
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)]
+);
+var users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  password: varchar("password"),
+  // For email/password auth, null for OAuth users
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  authProvider: varchar("auth_provider").default("email"),
+  // "replit", "google", "email"
+  emailVerified: boolean("email_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var schedules = pgTable("schedules", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  date: date("date").notNull(),
+  time: varchar("time", { length: 5 }),
+  // HH:MM format
+  endTime: varchar("end_time", { length: 5 }),
+  // HH:MM format
+  description: text("description"),
+  isCompleted: boolean("is_completed").default(false),
+  category: varchar("category", { length: 50 }).default("\uC77C\uBC18"),
+  categoryColor: varchar("category_color", { length: 7 }).default("#3B82F6"),
+  // hex color
+  isRecurring: boolean("is_recurring").default(false),
+  recurringType: varchar("recurring_type", { enum: ["daily", "weekly", "monthly"] }),
+  recurringDays: varchar("recurring_days"),
+  // for weekly: "1,3,5" (Mon, Wed, Fri)
+  recurringEndDate: date("recurring_end_date"),
+  recurringParentId: integer("recurring_parent_id"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var records = pgTable("records", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  studentIds: integer("student_ids").array(),
+  date: date("date").notNull(),
+  severity: varchar("severity", { enum: ["low", "medium", "high"] }).default("medium"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var assessments = pgTable("assessments", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  subject: text("subject").notNull(),
+  examName: text("exam_name").notNull(),
+  // Combined unit + task into exam name
+  studentName: text("student_name"),
+  score: integer("score"),
+  maxScore: integer("max_score"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var classes = pgTable("classes", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  grade: varchar("grade").notNull(),
+  className: varchar("class_name").notNull(),
+  year: varchar("year").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var students = pgTable("students", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  classId: integer("class_id").notNull().references(() => classes.id),
+  studentNumber: varchar("student_number").notNull(),
+  name: text("name").notNull(),
+  riskLevel: text("risk_level").default("low"),
+  // low, medium, high
+  lastAlertDate: timestamp("last_alert_date"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var parentCommunications = pgTable("parent_communications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  studentName: text("student_name").notNull(),
+  communicationType: text("communication_type").notNull(),
+  // phone, meeting, email, message
+  purpose: text("purpose").notNull(),
+  summary: text("summary").notNull(),
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  followUpCompleted: boolean("follow_up_completed").default(false),
+  date: text("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(),
+  // reminder, alert, warning, info
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedEntity: text("related_entity"),
+  // student_name, schedule_id, etc
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  isRead: boolean("is_read").default(false),
+  isSent: boolean("is_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var backups = pgTable("backups", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  backupType: text("backup_type").notNull(),
+  // auto, manual
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"),
+  status: text("status").notNull(),
+  // pending, completed, failed
+  createdAt: timestamp("created_at").defaultNow()
+});
+var userConsents = pgTable("user_consents", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  consentType: text("consent_type").notNull(),
+  // service_terms, privacy_policy, replit_oauth, ai_service_consent, data_responsibility
+  consentVersion: text("consent_version").notNull().default("1.0"),
+  isConsented: boolean("is_consented").notNull().default(false),
+  consentedAt: timestamp("consented_at"),
+  withdrawnAt: timestamp("withdrawn_at"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var insertScheduleSchema = createInsertSchema(schedules).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  recurringParentId: true
+});
+var insertRecordSchema = createInsertSchema(records).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertAssessmentSchema = createInsertSchema(assessments).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertClassSchema = createInsertSchema(classes).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertStudentSchema = createInsertSchema(students).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  riskLevel: true,
+  lastAlertDate: true
+});
+var insertParentCommunicationSchema = createInsertSchema(parentCommunications).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertBackupSchema = createInsertSchema(backups).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertUserConsentSchema = createInsertSchema(userConsents).omit({
+  id: true,
+  userId: true,
+  createdAt: true
+});
+var insertPasswordResetSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true
+});
+
+// server/db.ts
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import ws from "ws";
+neonConfig.webSocketConstructor = ws;
+var databaseUrl = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_qWcnJ9zH5RPv@ep-tiny-lake-a8phyz9i-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require";
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?"
+  );
+}
+var pool = new Pool({
+  connectionString: databaseUrl,
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 3e4,
+  idleTimeoutMillis: 3e4,
+  max: 20
+});
+var db = drizzle({ client: pool, schema: schema_exports });
+
+// server/storage.ts
+import { eq, and, desc, asc, inArray, sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+var DatabaseStorage = class {
+  // User operations
+  async getUser(id) {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+  async getUserByEmail(email) {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  async upsertUser(userData) {
+    const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
+      target: users.id,
+      set: {
+        ...userData,
+        updatedAt: /* @__PURE__ */ new Date()
+      }
+    }).returning();
+    return user;
+  }
+  async createEmailUser(userData) {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const userId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [user] = await db.insert(users).values({
+      id: userId,
+      email: userData.email,
+      password: hashedPassword,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      authProvider: "email",
+      emailVerified: false
+    }).returning();
+    return user;
+  }
+  // Schedule operations
+  async getSchedules(userId) {
+    return await db.select().from(schedules).where(eq(schedules.userId, userId)).orderBy(desc(schedules.date), desc(schedules.time));
+  }
+  async createSchedule(userId, schedule) {
+    const [newSchedule] = await db.insert(schedules).values({ ...schedule, userId }).returning();
+    return newSchedule;
+  }
+  async createRecurringSchedules(userId, schedule) {
+    const startDate = new Date(schedule.date);
+    const endDate = new Date(schedule.recurringEndDate);
+    const createdSchedules = [];
+    let currentDate = new Date(startDate);
+    let count = 0;
+    const maxSchedules = 90;
+    while (currentDate <= endDate && count < maxSchedules) {
+      const scheduleData = {
+        ...schedule,
+        date: currentDate.toISOString().split("T")[0],
+        userId,
+        isRecurring: true
+      };
+      const [newSchedule] = await db.insert(schedules).values(scheduleData).returning();
+      createdSchedules.push(newSchedule);
+      count++;
+      switch (schedule.recurringType) {
+        case "daily":
+          currentDate.setDate(currentDate.getDate() + 1);
+          break;
+        case "weekly":
+          currentDate.setDate(currentDate.getDate() + 7);
+          break;
+        case "monthly":
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+        default:
+          return createdSchedules;
+      }
+    }
+    return createdSchedules;
+  }
+  async updateSchedule(userId, id, updates) {
+    const [updatedSchedule] = await db.update(schedules).set(updates).where(and(eq(schedules.id, id), eq(schedules.userId, userId))).returning();
+    return updatedSchedule;
+  }
+  async deleteSchedule(userId, id) {
+    await db.delete(schedules).where(and(eq(schedules.id, id), eq(schedules.userId, userId)));
+  }
+  async completeSchedule(userId, id) {
+    await db.update(schedules).set({ isCompleted: true }).where(and(eq(schedules.id, id), eq(schedules.userId, userId)));
+  }
+  async getUpcomingSchedules(userId, days) {
+    const today = /* @__PURE__ */ new Date();
+    const futureDate = /* @__PURE__ */ new Date();
+    futureDate.setDate(today.getDate() + days);
+    return await db.select().from(schedules).where(
+      and(
+        eq(schedules.userId, userId),
+        eq(schedules.isCompleted, false)
+      )
+    ).orderBy(desc(schedules.date));
+  }
+  // Record operations
+  async getRecords(userId) {
+    const recordsList = await db.select().from(records).where(eq(records.userId, userId)).orderBy(desc(records.date), desc(records.createdAt));
+    const recordsWithStudents = await Promise.all(
+      recordsList.map(async (record) => {
+        if (record.studentIds && record.studentIds.length > 0) {
+          const studentsList = await db.select().from(students).where(and(
+            eq(students.userId, userId),
+            inArray(students.id, record.studentIds)
+          ));
+          return {
+            ...record,
+            studentNames: studentsList.map((s) => s.name)
+          };
+        }
+        return {
+          ...record,
+          studentNames: []
+        };
+      })
+    );
+    return recordsWithStudents;
+  }
+  async createRecord(userId, record) {
+    const [newRecord] = await db.insert(records).values({ ...record, userId }).returning();
+    return newRecord;
+  }
+  async updateRecord(userId, id, updates) {
+    const [record] = await db.update(records).set(updates).where(and(eq(records.id, id), eq(records.userId, userId))).returning();
+    return record;
+  }
+  async deleteRecord(userId, id) {
+    await db.delete(records).where(and(eq(records.id, id), eq(records.userId, userId)));
+  }
+  // Assessment operations
+  async getAssessments(userId) {
+    return await db.select().from(assessments).where(eq(assessments.userId, userId)).orderBy(desc(assessments.createdAt));
+  }
+  async createAssessment(userId, assessment) {
+    const [newAssessment] = await db.insert(assessments).values({ ...assessment, userId }).returning();
+    return newAssessment;
+  }
+  async deleteAssessment(userId, id) {
+    await db.delete(assessments).where(and(eq(assessments.id, id), eq(assessments.userId, userId)));
+  }
+  // Student operations
+  // Class operations
+  async getClasses(userId) {
+    return await db.select().from(classes).where(eq(classes.userId, userId)).orderBy(desc(classes.createdAt));
+  }
+  async createClass(userId, classData) {
+    const [newClass] = await db.insert(classes).values({ ...classData, userId }).returning();
+    return newClass;
+  }
+  async updateClass(userId, id, updates) {
+    const [updatedClass] = await db.update(classes).set(updates).where(and(eq(classes.id, id), eq(classes.userId, userId))).returning();
+    return updatedClass;
+  }
+  async deleteClass(userId, id) {
+    await db.delete(classes).where(and(eq(classes.id, id), eq(classes.userId, userId)));
+  }
+  // Student operations
+  async getStudents(userId) {
+    return await db.select().from(students).where(eq(students.userId, userId)).orderBy(desc(students.createdAt));
+  }
+  async getStudentsByClass(userId, classId) {
+    return await db.select().from(students).where(and(eq(students.userId, userId), eq(students.classId, classId))).orderBy(asc(sql`CAST(${students.studentNumber} AS INTEGER)`));
+  }
+  async createStudent(userId, student) {
+    const [newStudent] = await db.insert(students).values({ ...student, userId }).returning();
+    return newStudent;
+  }
+  async updateStudent(userId, id, updates) {
+    const [updatedStudent] = await db.update(students).set(updates).where(and(eq(students.id, id), eq(students.userId, userId))).returning();
+    return updatedStudent;
+  }
+  async deleteStudent(userId, id) {
+    await db.delete(students).where(and(eq(students.id, id), eq(students.userId, userId)));
+  }
+  async createMultipleStudents(userId, studentsData) {
+    const studentsWithUserId = studentsData.map((student) => ({ ...student, userId }));
+    return await db.insert(students).values(studentsWithUserId).returning();
+  }
+  async updateStudentRiskLevel(userId, studentName, riskLevel) {
+    await db.update(students).set({ riskLevel, lastAlertDate: /* @__PURE__ */ new Date() }).where(and(eq(students.userId, userId), eq(students.name, studentName)));
+  }
+  // Parent communication operations
+  async getParentCommunications(userId) {
+    return await db.select().from(parentCommunications).where(eq(parentCommunications.userId, userId)).orderBy(desc(parentCommunications.createdAt));
+  }
+  async createParentCommunication(userId, communication) {
+    const [newCommunication] = await db.insert(parentCommunications).values({ ...communication, userId }).returning();
+    return newCommunication;
+  }
+  async updateParentCommunication(userId, id, updates) {
+    await db.update(parentCommunications).set(updates).where(and(eq(parentCommunications.id, id), eq(parentCommunications.userId, userId)));
+  }
+  async deleteParentCommunication(userId, id) {
+    await db.delete(parentCommunications).where(and(eq(parentCommunications.id, id), eq(parentCommunications.userId, userId)));
+  }
+  // Notification operations
+  async getNotifications(userId) {
+    return await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt));
+  }
+  async createNotification(userId, notification) {
+    const [newNotification] = await db.insert(notifications).values({ ...notification, userId }).returning();
+    return newNotification;
+  }
+  async markNotificationAsRead(userId, id) {
+    await db.update(notifications).set({ isRead: true }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+  async markNotificationAsSent(userId, id) {
+    await db.update(notifications).set({ isSent: true }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+  async deleteNotification(userId, id) {
+    await db.delete(notifications).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+  // Backup operations
+  async getBackups(userId) {
+    return await db.select().from(backups).where(eq(backups.userId, userId)).orderBy(desc(backups.createdAt));
+  }
+  async createBackup(userId, backup) {
+    const [newBackup] = await db.insert(backups).values({ ...backup, userId }).returning();
+    return newBackup;
+  }
+  async updateBackupStatus(userId, id, status) {
+    await db.update(backups).set({ status }).where(and(eq(backups.id, id), eq(backups.userId, userId)));
+  }
+  // User consent operations
+  async getUserConsents(userId) {
+    return await db.select().from(userConsents).where(eq(userConsents.userId, userId));
+  }
+  async createUserConsent(userId, consent) {
+    try {
+      console.log("Creating/updating consent for user:", userId, "type:", consent.consentType);
+      const consentData = {
+        userId,
+        consentType: consent.consentType,
+        consentVersion: consent.consentVersion || "1.0",
+        isConsented: consent.isConsented,
+        consentedAt: consent.consentedAt,
+        withdrawnAt: consent.withdrawnAt
+      };
+      try {
+        const [newConsent] = await db.insert(userConsents).values(consentData).returning();
+        console.log("Created new consent:", newConsent.id);
+        return newConsent;
+      } catch (insertError) {
+        console.log("Insert failed, trying update for:", consent.consentType);
+        const [updatedConsent] = await db.update(userConsents).set({
+          isConsented: consent.isConsented,
+          consentVersion: consent.consentVersion || "1.0",
+          consentedAt: consent.consentedAt,
+          withdrawnAt: consent.withdrawnAt
+        }).where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType))).returning();
+        if (!updatedConsent) {
+          throw new Error(`Failed to update consent for ${consent.consentType}`);
+        }
+        console.log("Updated existing consent:", updatedConsent.id);
+        return updatedConsent;
+      }
+    } catch (error) {
+      console.error("Error in createUserConsent:", error);
+      throw new Error(`Failed to process consent ${consent.consentType}: ${error}`);
+    }
+  }
+  async updateUserConsent(userId, consentType, isConsented) {
+    const now = /* @__PURE__ */ new Date();
+    const result = await db.update(userConsents).set({
+      isConsented,
+      consentedAt: isConsented ? now : null,
+      withdrawnAt: !isConsented ? now : null
+    }).where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consentType)));
+    if (result.rowCount === 0) {
+      throw new Error(`No consent record found for user ${userId} and type ${consentType}`);
+    }
+  }
+  async hasRequiredConsents(userId) {
+    const requiredConsentTypes = ["service_terms", "privacy_policy", "oauth_services", "data_responsibility"];
+    const consents = await db.select().from(userConsents).where(
+      and(
+        eq(userConsents.userId, userId),
+        eq(userConsents.isConsented, true),
+        inArray(userConsents.consentType, requiredConsentTypes)
+      )
+    );
+    return consents.length >= requiredConsentTypes.length;
+  }
+  // Password reset operations
+  async createPasswordResetToken(userId, token) {
+    const expiresAt = /* @__PURE__ */ new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+    const [resetToken] = await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt
+    }).returning();
+    return resetToken;
+  }
+  async getPasswordResetToken(token) {
+    const [resetToken] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.token, token)).limit(1);
+    return resetToken;
+  }
+  async markTokenAsUsed(token) {
+    await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.token, token));
+  }
+  async updateUserPassword(userId, hashedPassword) {
+    await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId));
+  }
+};
+var storage = new DatabaseStorage();
+
+// server/replitAuth.ts
+import * as client from "openid-client";
+import { Strategy } from "openid-client/passport";
+import passport from "passport";
+import session from "express-session";
+import memoize from "memoizee";
+import connectPg from "connect-pg-simple";
+if (!process.env.REPLIT_DOMAINS) {
+  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+}
+var getOidcConfig = memoize(
+  async () => {
+    return await client.discovery(
+      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+      process.env.REPL_ID
+    );
+  },
+  { maxAge: 3600 * 1e3 }
+);
+function getSession() {
+  const sessionTtl = 7 * 24 * 60 * 60 * 1e3;
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions"
+  });
+  return session({
+    secret: process.env.SESSION_SECRET,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: sessionTtl
+    }
+  });
+}
+function updateUserSession(user, tokens) {
+  user.claims = tokens.claims();
+  user.access_token = tokens.access_token;
+  user.refresh_token = tokens.refresh_token;
+  user.expires_at = user.claims?.exp;
+}
+async function upsertUser(claims) {
+  await storage.upsertUser({
+    id: claims["sub"],
+    email: claims["email"],
+    firstName: claims["first_name"],
+    lastName: claims["last_name"],
+    profileImageUrl: claims["profile_image_url"]
+  });
+}
+async function setupAuth(app2) {
+  app2.set("trust proxy", 1);
+  app2.use(getSession());
+  app2.use(passport.initialize());
+  app2.use(passport.session());
+  const config = await getOidcConfig();
+  const verify = async (tokens, verified) => {
+    const user = {};
+    updateUserSession(user, tokens);
+    await upsertUser(tokens.claims());
+    verified(null, user);
+  };
+  for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
+    const strategy = new Strategy(
+      {
+        name: `replitauth:${domain}`,
+        config,
+        scope: "openid email profile offline_access",
+        callbackURL: `https://${domain}/api/callback`
+      },
+      verify
+    );
+    passport.use(strategy);
+  }
+  passport.serializeUser((user, cb) => cb(null, user));
+  passport.deserializeUser((user, cb) => cb(null, user));
+  app2.get("/api/login", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"]
+    })(req, res, next);
+  });
+  app2.get("/api/callback", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/api/login"
+    })(req, res, next);
+  });
+  app2.get("/api/logout", (req, res) => {
+    req.logout(() => {
+      res.redirect(
+        client.buildEndSessionUrl(config, {
+          client_id: process.env.REPL_ID,
+          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`
+        }).href
+      );
+    });
+  });
+}
+var isAuthenticated = async (req, res, next) => {
+  const user = req.user;
+  if (!req.isAuthenticated() || !user.expires_at) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const now = Math.floor(Date.now() / 1e3);
+  if (now <= user.expires_at) {
+    return next();
+  }
+  const refreshToken = user.refresh_token;
+  if (!refreshToken) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  try {
+    const config = await getOidcConfig();
+    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+    updateUserSession(user, tokenResponse);
+    return next();
+  } catch (error) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+};
+
+// server/googleAuth.ts
+import passport2 from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+function setupGoogleAuth(app2) {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    const getBaseURL = () => {
+      if (process.env.NODE_ENV === "production") {
+        return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "https://your-app.vercel.app";
+      }
+      return "http://localhost:5000";
+    };
+    const callbackURL = `${getBaseURL()}/api/auth/google/callback`;
+    passport2.use(new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const userData = {
+            id: profile.id,
+            email: profile.emails?.[0]?.value || null,
+            firstName: profile.name?.givenName || null,
+            lastName: profile.name?.familyName || null,
+            profileImageUrl: profile.photos?.[0]?.value || null
+          };
+          const user = await storage.upsertUser(userData);
+          const sessionUser = {
+            claims: {
+              sub: profile.id,
+              email: userData.email,
+              first_name: userData.firstName,
+              last_name: userData.lastName,
+              profile_image_url: userData.profileImageUrl,
+              exp: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+              // 7 days
+            },
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expires_at: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+          };
+          return done(null, sessionUser);
+        } catch (error) {
+          return done(error, false);
+        }
+      }
+    ));
+    app2.get(
+      "/api/auth/google",
+      passport2.authenticate("google", { scope: ["profile", "email"] })
+    );
+    app2.get(
+      "/api/auth/google/callback",
+      passport2.authenticate("google", {
+        successRedirect: "/",
+        failureRedirect: "/api/login"
+      })
+    );
+  }
+}
+function isGoogleAuthAvailable() {
+  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+// server/routes.ts
+import bcrypt2 from "bcryptjs";
+import { z } from "zod";
+function parseNaturalLanguageDate(text2) {
+  const today = /* @__PURE__ */ new Date();
+  const lowerText = text2.toLowerCase();
+  const dateRangeMatch = text2.match(/(\d{1,2})\/(\d{1,2})\s*[~-]\s*(\d{1,2})\/(\d{1,2})/);
+  if (dateRangeMatch) {
+    const startMonth = parseInt(dateRangeMatch[1]);
+    const startDay = parseInt(dateRangeMatch[2]);
+    const year = today.getFullYear();
+    const startDate = new Date(year, startMonth - 1, startDay);
+    return startDate.toISOString().split("T")[0];
+  }
+  const singleDateMatch = text2.match(/(\d{1,2})\/(\d{1,2})/);
+  if (singleDateMatch) {
+    const month = parseInt(singleDateMatch[1]);
+    const day = parseInt(singleDateMatch[2]);
+    const year = today.getFullYear();
+    const targetDate = new Date(year, month - 1, day);
+    return targetDate.toISOString().split("T")[0];
+  }
+  if (lowerText.includes("\uC624\uB298")) {
+    return today.toISOString().split("T")[0];
+  }
+  if (lowerText.includes("\uC5B4\uC81C")) {
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday.toISOString().split("T")[0];
+  }
+  if (lowerText.includes("\uB0B4\uC77C")) {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  }
+  const dayNames = ["\uC77C\uC694\uC77C", "\uC6D4\uC694\uC77C", "\uD654\uC694\uC77C", "\uC218\uC694\uC77C", "\uBAA9\uC694\uC77C", "\uAE08\uC694\uC77C", "\uD1A0\uC694\uC77C"];
+  const dayNamesShort = ["\uC77C", "\uC6D4", "\uD654", "\uC218", "\uBAA9", "\uAE08", "\uD1A0"];
+  for (let i = 0; i < dayNames.length; i++) {
+    if (lowerText.includes(`\uC9C0\uB09C ${dayNames[i]}`) || lowerText.includes(`\uC9C0\uB09C${dayNames[i]}`) || lowerText.includes(`\uC9C0\uB09C ${dayNamesShort[i]}\uC694\uC77C`) || lowerText.includes(`\uC9C0\uB09C${dayNamesShort[i]}\uC694\uC77C`)) {
+      const targetDay = new Date(today);
+      const currentDay = today.getDay();
+      let daysBack = currentDay - i;
+      if (daysBack <= 0) {
+        daysBack += 7;
+      }
+      targetDay.setDate(today.getDate() - daysBack);
+      return targetDay.toISOString().split("T")[0];
+    }
+  }
+  for (let i = 0; i < dayNames.length; i++) {
+    if (lowerText.includes(`\uB2E4\uC74C ${dayNames[i]}`) || lowerText.includes(`\uB2E4\uC74C${dayNames[i]}`) || lowerText.includes(`\uB2E4\uC74C ${dayNamesShort[i]}\uC694\uC77C`) || lowerText.includes(`\uB2E4\uC74C${dayNamesShort[i]}\uC694\uC77C`)) {
+      const targetDay = new Date(today);
+      const currentDay = today.getDay();
+      let daysForward = i - currentDay;
+      if (daysForward <= 0) {
+        daysForward += 7;
+      }
+      targetDay.setDate(today.getDate() + daysForward);
+      return targetDay.toISOString().split("T")[0];
+    }
+  }
+  const dateMatch = text2.match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if (dateMatch) {
+    const month = parseInt(dateMatch[1]);
+    const day = parseInt(dateMatch[2]);
+    const year = today.getFullYear();
+    const targetDate = new Date(year, month - 1, day);
+    return targetDate.toISOString().split("T")[0];
+  }
+  return today.toISOString().split("T")[0];
+}
+async function parseCommandBasic(command, userId) {
+  const results = [];
+  const lowerCommand = command.toLowerCase();
+  if (lowerCommand.includes("\uC0C1\uB2F4") || lowerCommand.includes("\uD559\uBD80\uBAA8")) {
+    const futureIndicators = ["\uC608\uC815", "\uACC4\uD68D", "\uD560 \uC608\uC815", "\uC608\uC57D", "\uC77C\uC815", "\uB0B4\uC77C", "\uB2E4\uC74C", "~\uC77C", "~\uC694\uC77C"];
+    const pastIndicators = ["\uD588\uC74C", "\uC644\uB8CC", "\uC9C4\uD589\uD588\uC74C", "\uC774\uC57C\uAE30\uD588\uC74C", "\uC57D\uC18D\uD588\uC74C", "\uD611\uC870\uD55C\uB2E4\uACE0", "\uC9C4\uD589", "\uAC00\uACA9\uD558\uAC70\uB098", "\uC7A1\uC544\uB2F9\uAE30\uB294"];
+    const hasFutureIndicator = futureIndicators.some((indicator) => lowerCommand.includes(indicator));
+    const hasPastIndicator = pastIndicators.some((indicator) => lowerCommand.includes(indicator));
+    if (hasFutureIndicator && !hasPastIndicator) {
+      const parsedDate = parseNaturalLanguageDate(command);
+      const schedule = await storage.createSchedule(userId, {
+        title: command,
+        date: parsedDate,
+        description: `\uC790\uB3D9 \uC0DD\uC131\uB428: ${command}`
+      });
+      results.push({ type: "schedule", data: schedule });
+    } else if (hasPastIndicator || !hasFutureIndicator && !hasPastIndicator) {
+      const studentName = extractStudentName(command);
+      const parsedDate = parseNaturalLanguageDate(command);
+      const communication = await storage.createParentCommunication(userId, {
+        studentName: studentName || "\uBBF8\uC9C0\uC815",
+        communicationType: "\uC0C1\uB2F4",
+        purpose: command,
+        summary: command,
+        date: parsedDate,
+        followUpRequired: false,
+        followUpCompleted: true
+      });
+      results.push({ type: "parent_communication", data: communication });
+    }
+  } else if (lowerCommand.includes("\uC77C\uC815") || lowerCommand.includes("\uC2A4\uCF00\uC904") || lowerCommand.includes("\uC57D\uC18D") || lowerCommand.includes("\uD68C\uC758")) {
+    const titleMatch = command.match(/(.+?)\s*(일정|스케줄|약속|회의)/);
+    const title = titleMatch ? titleMatch[1].trim() : "\uC0C8\uB85C\uC6B4 \uC77C\uC815";
+    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const schedule = await storage.createSchedule(userId, {
+      title,
+      date: today,
+      time: void 0,
+      endTime: void 0,
+      description: `\uC790\uB3D9 \uC0DD\uC131\uB428: ${command}`
+    });
+    results.push({ type: "schedule", data: schedule });
+  } else if (lowerCommand.includes("\uAE30\uB85D") || lowerCommand.includes("\uC0AC\uAC74") || lowerCommand.includes("\uBB38\uC81C") || lowerCommand.includes("\uC0DD\uD65C\uC9C0\uB3C4")) {
+    const events = splitMultipleEvents(command);
+    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const students2 = await storage.getStudents(userId);
+    for (const event of events) {
+      const title = event.length > 20 ? event.substring(0, 20) + "..." : event;
+      const studentNames = extractStudentNames(event);
+      const studentIds = studentNames.map((name) => {
+        const student = students2.find((s) => s.name === name);
+        return student ? student.id : null;
+      }).filter((id) => id !== null);
+      const record = await storage.createRecord(userId, {
+        title,
+        description: event.trim(),
+        date: today,
+        severity: determineSeverity(event),
+        studentIds: studentIds.length > 0 ? studentIds : null
+      });
+      results.push({ type: "record", data: record });
+    }
+  }
+  return results;
+}
+function extractStudentName(text2) {
+  const namePattern = /([가-힣]{2,3})(?:\s|의|이|가|를|을|와|과|에게|한테|님|학생)/g;
+  const matches = text2.match(namePattern);
+  if (matches && matches.length > 0) {
+    return matches[0].replace(/\s|의|이|가|를|을|와|과|에게|한테|님|학생/g, "");
+  }
+  const standalonePattern = /([가-힣]{2,3})/g;
+  const standaloneMatches = text2.match(standalonePattern);
+  return standaloneMatches ? standaloneMatches[0] : "";
+}
+function extractStudentNames(text2) {
+  const names = [];
+  const particlePattern = /([가-힣]{2,3})(?:이|가|를|을|와|과|에게|한테|님|학생)/g;
+  let match;
+  while ((match = particlePattern.exec(text2)) !== null) {
+    names.push(match[1]);
+  }
+  const possessivePattern = /([가-힣]{2,3})(?:의|에서|에|과|와)/g;
+  particlePattern.lastIndex = 0;
+  while ((match = possessivePattern.exec(text2)) !== null) {
+    names.push(match[1]);
+  }
+  const contextPattern = /([가-힣]{2,3})\s*(?:에\s*)?대해/g;
+  while ((match = contextPattern.exec(text2)) !== null) {
+    names.push(match[1]);
+  }
+  const actionPattern = /([가-힣]{2,3})(?:가|이)\s*(?:했|했다|했고|했는데|했으며|있다|있고|말했|소리|화가|장난)/g;
+  while ((match = actionPattern.exec(text2)) !== null) {
+    names.push(match[1]);
+  }
+  const uniqueNames = Array.from(new Set(names));
+  const filteredNames = uniqueNames.filter((name) => {
+    const commonWords = ["\uC774\uC57C\uAE30", "\uBB38\uC81C", "\uC0C1\uD669", "\uACBD\uC6B0", "\uB54C\uBB38", "\uAD00\uB828", "\uBC1C\uC0DD", "\uCC98\uB9AC"];
+    return !commonWords.includes(name);
+  });
+  return filteredNames;
+}
+function splitMultipleEvents(text2) {
+  const separators = [
+    /\s*그리고\s*/g,
+    /\s*또한\s*/g,
+    /\s*그리고나서\s*/g,
+    /\s*,\s*또\s*/g,
+    /\s*\.[\s]*[가-힣]/g,
+    // Sentence endings followed by Korean text
+    /\s*;\s*/g,
+    /\s*\.\s*그리고\s*/g,
+    /\s*\.\s*또\s*/g,
+    /\s*하고\s*/g,
+    /\s*그다음\s*/g
+  ];
+  let events = [text2];
+  for (const separator of separators) {
+    const newEvents = [];
+    for (const event of events) {
+      if (separator.source.includes("[\uAC00-\uD7A3]")) {
+        const parts = event.split(/\.\s*(?=[가-힣])/);
+        newEvents.push(...parts);
+      } else {
+        const parts = event.split(separator);
+        newEvents.push(...parts);
+      }
+    }
+    events = newEvents;
+  }
+  return events.map((event) => event.trim()).filter((event) => event.length > 3).map((event) => {
+    if (!event.match(/[.!?]$/)) {
+      event += ".";
+    }
+    return event;
+  });
+}
+function determineSeverity(text2) {
+  const lowerText = text2.toLowerCase();
+  if (lowerText.includes("\uD3ED\uB825") || lowerText.includes("\uC704\uD5D8") || lowerText.includes("\uC2EC\uAC01") || lowerText.includes("\uAC00\uACA9") || lowerText.includes("\uC7A1\uC544\uB2F9\uAE30")) {
+    return "high";
+  } else if (lowerText.includes("\uC8FC\uC758") || lowerText.includes("\uBB38\uC81C") || lowerText.includes("\uC0DD\uD65C\uC9C0\uB3C4")) {
+    return "medium";
+  }
+  return "low";
+}
+async function registerRoutes(app2) {
+  await setupAuth(app2);
+  setupGoogleAuth(app2);
+  app2.get("/api/auth/google/available", (req, res) => {
+    res.json({ available: isGoogleAuthAvailable() });
+  });
+  app2.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "\uC774\uBA54\uC77C\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694." });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.password) {
+        return res.json({ message: "\uBE44\uBC00\uBC88\uD638 \uC7AC\uC124\uC815 \uC774\uBA54\uC77C\uC774 \uBC1C\uC1A1\uB418\uC5C8\uC2B5\uB2C8\uB2E4. (\uB4F1\uB85D\uB41C \uC774\uBA54\uC77C\uC778 \uACBD\uC6B0)" });
+      }
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      await storage.createPasswordResetToken(user.id, token);
+      const resetLink = `${req.protocol}://${req.get("host")}/reset-password?token=${token}`;
+      console.log(`\uBE44\uBC00\uBC88\uD638 \uC7AC\uC124\uC815 \uB9C1\uD06C: ${resetLink}`);
+      res.json({
+        message: "\uBE44\uBC00\uBC88\uD638 \uC7AC\uC124\uC815 \uB9C1\uD06C\uAC00 \uCF58\uC194\uC5D0 \uCD9C\uB825\uB418\uC5C8\uC2B5\uB2C8\uB2E4. (\uC2E4\uC81C\uB85C\uB294 \uC774\uBA54\uC77C\uB85C \uC804\uC1A1\uB429\uB2C8\uB2E4)",
+        resetLink,
+        // Remove this in production
+        instructions: "\uAC1C\uBC1C \uBAA8\uB4DC\uC5D0\uC11C\uB294 \uC11C\uBC84 \uCF58\uC194\uC5D0\uC11C \uB9C1\uD06C\uB97C \uD655\uC778\uD558\uC138\uC694."
+      });
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      res.status(500).json({ message: "\uBE44\uBC00\uBC88\uD638 \uC7AC\uC124\uC815 \uC694\uCCAD \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "\uD1A0\uD070\uACFC \uC0C8 \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694." });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "\uBE44\uBC00\uBC88\uD638\uB294 \uCD5C\uC18C 6\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4." });
+      }
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken || resetToken.used || /* @__PURE__ */ new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ message: "\uC720\uD6A8\uD558\uC9C0 \uC54A\uAC70\uB098 \uB9CC\uB8CC\uB41C \uD1A0\uD070\uC785\uB2C8\uB2E4." });
+      }
+      const hashedPassword = await bcrypt2.hash(newPassword, 10);
+      await storage.updateUserPassword(resetToken.userId, hashedPassword);
+      await storage.markTokenAsUsed(token);
+      res.json({ message: "\uBE44\uBC00\uBC88\uD638\uAC00 \uC131\uACF5\uC801\uC73C\uB85C \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "\uBE44\uBC00\uBC88\uD638 \uBCC0\uACBD \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, confirmPassword, firstName, lastName } = req.body;
+      if (!email || !password || !confirmPassword) {
+        return res.status(400).json({ message: "\uC774\uBA54\uC77C, \uBE44\uBC00\uBC88\uD638, \uBE44\uBC00\uBC88\uD638 \uD655\uC778\uC740 \uD544\uC218\uC785\uB2C8\uB2E4." });
+      }
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: "\uBE44\uBC00\uBC88\uD638\uAC00 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ message: "\uBE44\uBC00\uBC88\uD638\uB294 \uCD5C\uC18C 6\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4." });
+      }
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "\uC774\uBBF8 \uC0AC\uC6A9 \uC911\uC778 \uC774\uBA54\uC77C\uC785\uB2C8\uB2E4." });
+      }
+      const user = await storage.createEmailUser({
+        email,
+        password,
+        firstName,
+        lastName
+      });
+      const sessionUser = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_image_url: user.profileImageUrl,
+          exp: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+          // 7 days
+        },
+        access_token: null,
+        refresh_token: null,
+        expires_at: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+      };
+      req.login(sessionUser, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "\uD68C\uC6D0\uAC00\uC785\uC740 \uC644\uB8CC\uB418\uC5C8\uC9C0\uB9CC \uB85C\uADF8\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+        }
+        res.json({ message: "\uD68C\uC6D0\uAC00\uC785\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", user: { id: user.id, email: user.email } });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "\uD68C\uC6D0\uAC00\uC785 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "\uC774\uBA54\uC77C\uACFC \uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694." });
+      }
+      const user = await storage.getUserByEmail(email);
+      console.log("Login attempt for:", email, "User found:", !!user, "Has password:", !!user?.password, "Auth provider:", user?.authProvider);
+      if (!user) {
+        return res.status(401).json({ message: "\uC774\uBA54\uC77C \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." });
+      }
+      if (!user.password) {
+        return res.status(401).json({ message: "\uC774 \uACC4\uC815\uC740 \uC18C\uC15C \uB85C\uADF8\uC778 \uC804\uC6A9\uC785\uB2C8\uB2E4. \uB2E4\uB978 \uBC29\uBC95\uC73C\uB85C \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694." });
+      }
+      const isValidPassword = await bcrypt2.compare(password, user.password);
+      console.log("Password validation result:", isValidPassword);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "\uC774\uBA54\uC77C \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4." });
+      }
+      const sessionUser = {
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_image_url: user.profileImageUrl,
+          exp: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+          // 7 days
+        },
+        access_token: null,
+        refresh_token: null,
+        expires_at: Math.floor(Date.now() / 1e3) + 7 * 24 * 60 * 60
+      };
+      req.login(sessionUser, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ message: "\uB85C\uADF8\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4." });
+        }
+        console.log("User logged in successfully, session ID:", req.sessionID);
+        res.json({ message: "\uB85C\uADF8\uC778 \uC131\uACF5", user: { id: user.id, email: user.email } });
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "\uB85C\uADF8\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.get("/api/auth/user", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const hasConsents = await storage.hasRequiredConsents(userId);
+      res.json({ ...user, hasRequiredConsents: hasConsents });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  app2.get("/api/user/consents", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const consents = await storage.getUserConsents(userId);
+      res.json(consents);
+    } catch (error) {
+      console.error("Error fetching consents:", error);
+      res.status(500).json({ message: "Failed to fetch consents" });
+    }
+  });
+  app2.post("/api/user/consents", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { consents } = req.body;
+      if (!consents || !Array.isArray(consents)) {
+        return res.status(400).json({ message: "Invalid consent data" });
+      }
+      console.log("Processing consents for user:", userId);
+      console.log("Number of consents:", consents.length);
+      const results = [];
+      for (const consent of consents) {
+        try {
+          console.log("Processing:", consent.consentType, "->", consent.isConsented);
+          const result = await storage.createUserConsent(userId, {
+            consentType: consent.consentType,
+            consentVersion: "1.0",
+            isConsented: consent.isConsented,
+            consentedAt: consent.isConsented ? /* @__PURE__ */ new Date() : null,
+            withdrawnAt: !consent.isConsented ? /* @__PURE__ */ new Date() : null
+          });
+          results.push(result);
+          console.log("Success for:", consent.consentType);
+        } catch (consentError) {
+          console.error("Error processing consent:", consent.consentType, consentError);
+          throw consentError;
+        }
+      }
+      console.log("All consents processed successfully");
+      res.json({
+        message: "Consents updated successfully",
+        processed: results.length
+      });
+    } catch (error) {
+      console.error("Error in consent processing:", error);
+      res.status(500).json({
+        message: "Failed to update consents",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  app2.get("/api/schedules", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const schedules2 = await storage.getSchedules(userId);
+      res.json(schedules2);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+      res.status(500).json({ message: "\uC77C\uC815\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/schedules", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertScheduleSchema.parse(req.body);
+      const schedule = await storage.createSchedule(userId, validatedData);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error creating schedule:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uC77C\uC815 \uC0DD\uC131\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.post("/api/schedules/recurring", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertScheduleSchema.parse(req.body);
+      const schedules2 = await storage.createRecurringSchedules(userId, validatedData);
+      res.json(schedules2);
+    } catch (error) {
+      console.error("Error creating recurring schedules:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uBC18\uBCF5 \uC77C\uC815 \uC0DD\uC131\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.get("/api/schedules/upcoming", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const days = parseInt(req.query.days) || 7;
+      const schedules2 = await storage.getUpcomingSchedules(userId, days);
+      res.json(schedules2);
+    } catch (error) {
+      console.error("Error fetching upcoming schedules:", error);
+      res.status(500).json({ message: "\uB2E4\uAC00\uC624\uB294 \uC77C\uC815\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.patch("/api/schedules/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const schedule = await storage.updateSchedule(userId, id, req.body);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      res.status(500).json({ message: "\uC77C\uC815 \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.patch("/api/schedules/:id/complete", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.completeSchedule(userId, id);
+      res.json({ message: "\uC77C\uC815\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error completing schedule:", error);
+      res.status(500).json({ message: "\uC77C\uC815 \uC644\uB8CC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.patch("/api/schedules/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const schedule = await storage.updateSchedule(userId, id, req.body);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      res.status(500).json({ message: "\uC77C\uC815 \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.delete("/api/schedules/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteSchedule(userId, id);
+      res.json({ message: "\uC77C\uC815\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      res.status(500).json({ message: "\uC77C\uC815 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.get("/api/records", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const records2 = await storage.getRecords(userId);
+      res.json(records2);
+    } catch (error) {
+      console.error("Error fetching records:", error);
+      res.status(500).json({ message: "\uAE30\uB85D\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/records", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertRecordSchema.parse(req.body);
+      const record = await storage.createRecord(userId, validatedData);
+      res.json(record);
+    } catch (error) {
+      console.error("Error creating record:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uAE30\uB85D \uC0DD\uC131\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.patch("/api/records/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const record = await storage.updateRecord(userId, id, req.body);
+      res.json(record);
+    } catch (error) {
+      console.error("Error updating record:", error);
+      res.status(500).json({ message: "\uAE30\uB85D \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.delete("/api/records/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteRecord(userId, id);
+      res.json({ message: "\uAE30\uB85D\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      res.status(500).json({ message: "\uAE30\uB85D \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.get("/api/assessments", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const assessments2 = await storage.getAssessments(userId);
+      res.json(assessments2);
+    } catch (error) {
+      console.error("Error fetching assessments:", error);
+      res.status(500).json({ message: "\uD3C9\uAC00\uB97C \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/assessments/upload", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { items } = req.body;
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: "\uC798\uBABB\uB41C \uB370\uC774\uD130 \uD615\uC2DD\uC785\uB2C8\uB2E4." });
+      }
+      const assessments2 = [];
+      for (const item of items) {
+        const validatedData = insertAssessmentSchema.parse(item);
+        const assessment = await storage.createAssessment(userId, validatedData);
+        assessments2.push(assessment);
+      }
+      res.json(assessments2);
+    } catch (error) {
+      console.error("Error uploading assessments:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uD3C9\uAC00 \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.delete("/api/assessments/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteAssessment(userId, id);
+      res.json({ message: "\uD3C9\uAC00\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error deleting assessment:", error);
+      res.status(500).json({ message: "\uD3C9\uAC00 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.get("/api/classes", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const classes2 = await storage.getClasses(userId);
+      res.json(classes2);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      res.status(500).json({ message: "\uD559\uAE09\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/classes", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertClassSchema.parse(req.body);
+      const classData = await storage.createClass(userId, validatedData);
+      res.json(classData);
+    } catch (error) {
+      console.error("Error creating class:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uD559\uAE09 \uCD94\uAC00\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.patch("/api/classes/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      const classData = await storage.updateClass(userId, id, req.body);
+      res.json(classData);
+    } catch (error) {
+      console.error("Error updating class:", error);
+      res.status(500).json({ message: "\uD559\uAE09 \uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.delete("/api/classes/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteClass(userId, id);
+      res.json({ message: "\uD559\uAE09\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      res.status(500).json({ message: "\uD559\uAE09 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.get("/api/students", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const students2 = await storage.getStudents(userId);
+      res.json(students2);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      res.status(500).json({ message: "\uD559\uC0DD \uBA85\uB2E8\uC744 \uBD88\uB7EC\uC624\uB294\uB370 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/students", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { students: studentList } = req.body;
+      if (Array.isArray(studentList)) {
+        const validatedStudents = studentList.map(
+          (student) => insertStudentSchema.parse(student)
+        );
+        const students2 = await storage.createMultipleStudents(userId, validatedStudents);
+        res.json(students2);
+      } else {
+        const validatedData = insertStudentSchema.parse(req.body);
+        const student = await storage.createStudent(userId, validatedData);
+        res.json(student);
+      }
+    } catch (error) {
+      console.error("Error creating students:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "\uC798\uBABB\uB41C \uC785\uB825 \uB370\uC774\uD130\uC785\uB2C8\uB2E4." });
+      } else {
+        res.status(500).json({ message: "\uD559\uC0DD \uCD94\uAC00\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+      }
+    }
+  });
+  app2.post("/api/students/upload", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { data, classId } = req.body;
+      if (!data || !classId) {
+        return res.status(400).json({ message: "\uB370\uC774\uD130\uC640 \uD559\uAE09 ID\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4." });
+      }
+      const lines = data.trim().split("\n").filter((line) => line.trim());
+      const students2 = [];
+      for (const line of lines) {
+        const parts = line.split(",").map((part) => part.trim());
+        if (parts.length >= 2) {
+          const name = parts[0];
+          const studentNumber = parts[1];
+          if (name && studentNumber) {
+            students2.push({
+              studentNumber,
+              name,
+              classId: parseInt(classId)
+            });
+          }
+        }
+      }
+      if (students2.length === 0) {
+        return res.status(400).json({ message: "\uC720\uD6A8\uD55C \uD559\uC0DD \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4." });
+      }
+      const createdStudents = await storage.createMultipleStudents(userId, students2);
+      res.json(createdStudents);
+    } catch (error) {
+      console.error("Error uploading students:", error);
+      res.status(500).json({ message: "\uD559\uC0DD \uBAA9\uB85D \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.delete("/api/students/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteStudent(userId, id);
+      res.json({ message: "\uD559\uC0DD\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      res.status(500).json({ message: "\uD559\uC0DD \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4." });
+    }
+  });
+  app2.post("/api/process-command", isAuthenticated, async (req, res) => {
+    try {
+      const { command } = req.body;
+      const userId = req.user.claims.sub;
+      if (!command || typeof command !== "string") {
+        return res.status(400).json({ message: "\uBA85\uB839\uC5B4\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694." });
+      }
+      const apiKey = req.headers["x-gemini-api-key"];
+      if (!apiKey) {
+        const results2 = await parseCommandBasic(command, userId);
+        return res.json({
+          message: `\uAE30\uBCF8 \uBA85\uB839 \uD30C\uC2F1\uC73C\uB85C ${results2.length}\uAC1C\uC758 \uC791\uC5C5\uC774 \uCC98\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uB354 \uC815\uD655\uD55C AI \uCC98\uB9AC\uB97C \uC704\uD574 \uC124\uC815\uC5D0\uC11C Gemini API \uD0A4\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.`,
+          processed: true,
+          results: results2,
+          fallback: true
+        });
+      }
+      const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `\uB2E4\uC74C \uD55C\uAD6D\uC5B4 \uBA85\uB839\uC744 \uBD84\uC11D\uD558\uC5EC JSON \uD615\uD0DC\uB85C \uC751\uB2F5\uD574\uC8FC\uC138\uC694. \uC5EC\uB7EC \uAC1C\uC758 \uBA85\uB839\uC774 \uC788\uB2E4\uBA74 \uBAA8\uB450 \uCC98\uB9AC\uD574\uC8FC\uC138\uC694.
+
+\uBA85\uB839\uC5B4: "${command}"
+
+\uC751\uB2F5 \uD615\uC2DD:
+{
+  "actions": [
+    {
+      "type": "schedule" | "record" | "assessment" | "student" | "unknown",
+      "data": {
+        // \uC2A4\uCF00\uC904\uC778 \uACBD\uC6B0: title, date, time(\uC120\uD0DD), endTime(\uC120\uD0DD), description(\uC120\uD0DD)
+        // \uAE30\uB85D\uC778 \uACBD\uC6B0: title, description, date, severity("low"|"medium"|"high")
+        // \uD3C9\uAC00\uC778 \uACBD\uC6B0: subject, unit, task, studentName(\uC120\uD0DD), score(\uC120\uD0DD), maxScore(\uC120\uD0DD), notes(\uC120\uD0DD)
+        // \uD559\uC0DD\uC778 \uACBD\uC6B0: name, studentNumber(\uC120\uD0DD), grade(\uC120\uD0DD), class(\uC120\uD0DD)
+      }
+    }
+  ]
+}
+
+\uB0A0\uC9DC\uB294 YYYY-MM-DD \uD615\uC2DD\uC73C\uB85C, \uC2DC\uAC04\uC740 HH:MM \uD615\uC2DD\uC73C\uB85C \uBCC0\uD658\uD574\uC8FC\uC138\uC694.
+\uC624\uB298 \uB0A0\uC9DC\uB294 ${(/* @__PURE__ */ new Date()).toISOString().split("T")[0]}\uC785\uB2C8\uB2E4.
+\uC2DC\uAC04\uC774 \uBA85\uC2DC\uB418\uC9C0 \uC54A\uC740 \uC77C\uC815\uC740 time\uC744 null\uB85C \uC124\uC815\uD574\uC8FC\uC138\uC694.`
+            }]
+          }]
+        })
+      });
+      console.log("Gemini API response status:", geminiResponse.status);
+      if (!geminiResponse.ok) {
+        const errorText = await geminiResponse.text();
+        console.error("Gemini API error response:", errorText);
+        throw new Error(`Gemini API \uD638\uCD9C \uC2E4\uD328: ${geminiResponse.status} - ${errorText}`);
+      }
+      const geminiData = await geminiResponse.json();
+      const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!responseText) {
+        throw new Error("Gemini API \uC751\uB2F5\uC774 \uBE44\uC5B4\uC788\uC2B5\uB2C8\uB2E4");
+      }
+      let parsedResponse;
+      try {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("JSON \uD615\uC2DD\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4");
+        }
+      } catch (parseError) {
+        console.error("JSON \uD30C\uC2F1 \uC624\uB958:", responseText);
+        throw new Error("AI \uC751\uB2F5\uC744 \uD30C\uC2F1\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4");
+      }
+      const results = [];
+      const errors = [];
+      for (const action of parsedResponse.actions || []) {
+        try {
+          switch (action.type) {
+            case "schedule":
+              const schedule = await storage.createSchedule(userId, {
+                title: action.data.title,
+                date: action.data.date || (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+                time: action.data.time || void 0,
+                endTime: action.data.endTime || void 0,
+                description: action.data.description || void 0
+              });
+              results.push({ type: "schedule", data: schedule });
+              break;
+            case "record":
+              const students2 = await storage.getStudents(userId);
+              const studentNames = extractStudentNames(action.data.description || action.data.title);
+              const studentIds = studentNames.map((name) => {
+                const student2 = students2.find((s) => s.name === name);
+                return student2 ? student2.id : null;
+              }).filter((id) => id !== null);
+              const record = await storage.createRecord(userId, {
+                title: action.data.title,
+                description: action.data.description,
+                date: action.data.date,
+                severity: action.data.severity || "medium",
+                studentIds: studentIds.length > 0 ? studentIds : null
+              });
+              results.push({ type: "record", data: record });
+              break;
+            case "assessment":
+              const assessment = await storage.createAssessment(userId, {
+                subject: action.data.subject,
+                examName: action.data.examName || `${action.data.unit || ""} ${action.data.task || ""}`.trim(),
+                studentName: action.data.studentName || void 0,
+                score: action.data.score || void 0,
+                maxScore: action.data.maxScore || void 0,
+                notes: action.data.notes || void 0
+              });
+              results.push({ type: "assessment", data: assessment });
+              break;
+            case "student":
+              const student = await storage.createStudent(userId, {
+                name: action.data.name,
+                studentNumber: action.data.studentNumber || "",
+                classId: action.data.classId || 1
+              });
+              results.push({ type: "student", data: student });
+              break;
+            default:
+              errors.push(`\uC54C \uC218 \uC5C6\uB294 \uBA85\uB839 \uC720\uD615: ${action.type}`);
+          }
+        } catch (actionError) {
+          console.error("Action \uCC98\uB9AC \uC624\uB958:", actionError);
+          errors.push(`${action.type} \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.`);
+        }
+      }
+      const successCount = results.length;
+      const errorCount = errors.length;
+      let message = "";
+      if (successCount > 0 && errorCount === 0) {
+        message = `${successCount}\uAC1C\uC758 \uBA85\uB839\uC774 \uC131\uACF5\uC801\uC73C\uB85C \uCC98\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`;
+      } else if (successCount > 0 && errorCount > 0) {
+        message = `${successCount}\uAC1C \uC131\uACF5, ${errorCount}\uAC1C \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.`;
+      } else if (errorCount > 0) {
+        message = `\uBAA8\uB4E0 \uBA85\uB839 \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4: ${errors.join(", ")}`;
+      } else {
+        message = "\uCC98\uB9AC\uD560 \uC218 \uC788\uB294 \uBA85\uB839\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.";
+      }
+      res.json({
+        message,
+        processed: true,
+        results,
+        errors,
+        originalCommand: command
+      });
+    } catch (error) {
+      console.error("Error processing command:", error);
+      res.status(500).json({
+        message: error.message || "\uBA85\uB839 \uCC98\uB9AC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
+        processed: false
+      });
+    }
+  });
+  app2.get("/api/parent-communications", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const communications = await storage.getParentCommunications(userId);
+      res.json(communications);
+    } catch (error) {
+      console.error("Error fetching parent communications:", error);
+      res.status(500).json({ message: "Failed to fetch communications" });
+    }
+  });
+  app2.post("/api/parent-communications", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const communication = await storage.createParentCommunication(userId, req.body);
+      res.json(communication);
+    } catch (error) {
+      console.error("Error creating parent communication:", error);
+      res.status(500).json({ message: "Failed to create communication" });
+    }
+  });
+  app2.patch("/api/parent-communications/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.updateParentCommunication(userId, id, req.body);
+      res.json({ message: "Communication updated successfully" });
+    } catch (error) {
+      console.error("Error updating parent communication:", error);
+      res.status(500).json({ message: "Failed to update communication" });
+    }
+  });
+  app2.delete("/api/parent-communications/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.deleteParentCommunication(userId, id);
+      res.json({ message: "Communication deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting parent communication:", error);
+      res.status(500).json({ message: "Failed to delete communication" });
+    }
+  });
+  app2.get("/api/notifications", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notifications2 = await storage.getNotifications(userId);
+      res.json(notifications2);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  app2.post("/api/notifications", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notification = await storage.createNotification(userId, req.body);
+      res.json(notification);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      res.status(500).json({ message: "Failed to create notification" });
+    }
+  });
+  app2.patch("/api/notifications/:id/read", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const id = parseInt(req.params.id);
+      await storage.markNotificationAsRead(userId, id);
+      res.json({ message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  app2.post("/api/assess-risk", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const students2 = await storage.getStudents(userId);
+      const assessments2 = await storage.getAssessments(userId);
+      const records2 = await storage.getRecords(userId);
+      const riskAssessments = await assessStudentRisks(students2, assessments2, records2, userId);
+      res.json({ riskAssessments, message: "Risk assessment completed" });
+    } catch (error) {
+      console.error("Error assessing risks:", error);
+      res.status(500).json({ message: "Failed to assess risks" });
+    }
+  });
+  app2.get("/api/backups", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const backups2 = await storage.getBackups(userId);
+      res.json(backups2);
+    } catch (error) {
+      console.error("Error fetching backups:", error);
+      res.status(500).json({ message: "Failed to fetch backups" });
+    }
+  });
+  app2.post("/api/backup/create", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const backupData = await createDataBackup(userId);
+      const fileName = `backup_${(/* @__PURE__ */ new Date()).toISOString().split("T")[0]}_${Date.now()}.json`;
+      const backup = await storage.createBackup(userId, {
+        backupType: "manual",
+        fileName,
+        fileSize: JSON.stringify(backupData).length,
+        status: "completed"
+      });
+      res.json({
+        backup,
+        data: backupData,
+        message: "Backup created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ message: "Failed to create backup" });
+    }
+  });
+  const httpServer = createServer(app2);
+  return httpServer;
+}
+async function assessStudentRisks(students2, assessments2, records2, userId) {
+  const riskAssessments = [];
+  for (const student of students2) {
+    const studentAssessments = assessments2.filter((a) => a.studentName === student.name);
+    const studentRecords = records2.filter(
+      (r) => r.title.includes(student.name) || r.description?.includes(student.name)
+    );
+    let riskScore = 0;
+    let riskFactors = [];
+    if (studentAssessments.length > 0) {
+      const avgScore = studentAssessments.filter((a) => a.score && a.maxScore).reduce((sum, a) => sum + a.score / a.maxScore * 100, 0) / studentAssessments.filter((a) => a.score && a.maxScore).length;
+      if (avgScore < 60) {
+        riskScore += 3;
+        riskFactors.push("\uD559\uC5C5 \uC131\uCDE8\uB3C4 \uC800\uC870");
+      } else if (avgScore < 70) {
+        riskScore += 2;
+        riskFactors.push("\uD559\uC5C5 \uC131\uCDE8\uB3C4 \uAD00\uC2EC \uD544\uC694");
+      }
+    }
+    const highSeverityRecords = studentRecords.filter((r) => r.severity === "high");
+    const recentRecords = studentRecords.filter((r) => {
+      const recordDate = new Date(r.date);
+      const twoWeeksAgo = /* @__PURE__ */ new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      return recordDate > twoWeeksAgo;
+    });
+    if (highSeverityRecords.length >= 2) {
+      riskScore += 3;
+      riskFactors.push("\uC2EC\uAC01\uD55C \uD589\uB3D9 \uBB38\uC81C \uBC18\uBCF5");
+    } else if (highSeverityRecords.length === 1) {
+      riskScore += 2;
+      riskFactors.push("\uC2EC\uAC01\uD55C \uD589\uB3D9 \uBB38\uC81C");
+    }
+    if (recentRecords.length >= 3) {
+      riskScore += 2;
+      riskFactors.push("\uCD5C\uADFC \uBB38\uC81C \uD589\uB3D9 \uBE48\uBC1C");
+    }
+    let riskLevel = "low";
+    if (riskScore >= 5) {
+      riskLevel = "high";
+    } else if (riskScore >= 3) {
+      riskLevel = "medium";
+    }
+    if (student.riskLevel !== riskLevel) {
+      await storage.updateStudentRiskLevel(userId, student.name, riskLevel);
+      if (riskLevel !== "low") {
+        await storage.createNotification(userId, {
+          type: "alert",
+          title: `${student.name} \uC704\uD5D8\uB3C4 \uBCC0\uACBD`,
+          message: `${student.name} \uD559\uC0DD\uC758 \uC704\uD5D8\uB3C4\uAC00 ${riskLevel === "high" ? "\uB192\uC74C" : "\uBCF4\uD1B5"}\uC73C\uB85C \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC989\uC2DC \uAD00\uC2EC\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.`,
+          relatedEntity: student.name,
+          scheduledFor: /* @__PURE__ */ new Date()
+        });
+      }
+    }
+    riskAssessments.push({
+      studentName: student.name,
+      riskLevel,
+      riskScore,
+      riskFactors,
+      recommendations: generateRecommendations(riskLevel, riskFactors)
+    });
+  }
+  return riskAssessments;
+}
+function generateRecommendations(riskLevel, riskFactors) {
+  const recommendations = [];
+  if (riskLevel === "high") {
+    recommendations.push("\uC989\uC2DC \uD559\uBD80\uBAA8 \uC0C1\uB2F4 \uC2E4\uC2DC");
+    recommendations.push("\uAC1C\uBCC4 \uD559\uC2B5 \uACC4\uD68D \uC218\uB9BD");
+    recommendations.push("\uC0C1\uB2F4 \uAD50\uC0AC\uC640 \uC5F0\uACC4");
+  } else if (riskLevel === "medium") {
+    recommendations.push("\uC8FC\uAC04 \uBAA8\uB2C8\uD130\uB9C1 \uC2E4\uC2DC");
+    recommendations.push("\uD559\uBD80\uBAA8 \uD1B5\uD654 \uAD8C\uC7A5");
+  }
+  if (riskFactors.includes("\uD559\uC5C5 \uC131\uCDE8\uB3C4 \uC800\uC870")) {
+    recommendations.push("\uAE30\uCD08 \uD559\uC2B5 \uBCF4\uCDA9 \uD504\uB85C\uADF8\uB7A8 \uCC38\uC5EC");
+    recommendations.push("\uB610\uB798 \uD559\uC2B5 \uBA58\uD1A0\uB9C1 \uC5F0\uACB0");
+  }
+  if (riskFactors.includes("\uC2EC\uAC01\uD55C \uD589\uB3D9 \uBB38\uC81C \uBC18\uBCF5")) {
+    recommendations.push("\uD589\uB3D9 \uC218\uC815 \uD504\uB85C\uADF8\uB7A8 \uCC38\uC5EC");
+    recommendations.push("\uC804\uBB38 \uC0C1\uB2F4 \uC758\uB8B0");
+  }
+  return recommendations.length > 0 ? recommendations : ["\uC9C0\uC18D\uC801\uC778 \uAD00\uCC30 \uC720\uC9C0"];
+}
+async function createDataBackup(userId) {
+  const [
+    schedules2,
+    records2,
+    assessments2,
+    students2,
+    parentCommunications2,
+    notifications2
+  ] = await Promise.all([
+    storage.getSchedules(userId),
+    storage.getRecords(userId),
+    storage.getAssessments(userId),
+    storage.getStudents(userId),
+    storage.getParentCommunications(userId),
+    storage.getNotifications(userId)
+  ]);
+  return {
+    backupDate: (/* @__PURE__ */ new Date()).toISOString(),
+    userId,
+    data: {
+      schedules: schedules2,
+      records: records2,
+      assessments: assessments2,
+      students: students2,
+      parentCommunications: parentCommunications2,
+      notifications: notifications2
+    },
+    summary: {
+      totalSchedules: schedules2.length,
+      totalRecords: records2.length,
+      totalAssessments: assessments2.length,
+      totalStudents: students2.length,
+      totalCommunications: parentCommunications2.length,
+      totalNotifications: notifications2.length
+    }
+  };
+}
+
+// server/vite.ts
+import express from "express";
+import fs from "fs";
+import path2 from "path";
+import { createServer as createViteServer, createLogger } from "vite";
+
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var vite_config_default = defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
+      await import("@replit/vite-plugin-cartographer").then(
+        (m) => m.cartographer()
+      )
+    ] : []
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets")
+    }
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"]
+    }
+  }
+});
+
+// server/vite.ts
+import { nanoid } from "nanoid";
+var viteLogger = createLogger();
+function log(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+async function setupVite(app2, server) {
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true
+  };
+  const vite = await createViteServer({
+    ...vite_config_default,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      }
+    },
+    server: serverOptions,
+    appType: "custom"
+  });
+  app2.use(vite.middlewares);
+  app2.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    try {
+      const clientTemplate = path2.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html"
+      );
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+}
+function serveStatic(app2) {
+  const distPath = path2.resolve(import.meta.dirname, "public");
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path2.resolve(distPath, "index.html"));
+  });
+}
+
+// server/index.ts
+var app = express2();
+app.use(express2.json());
+app.use(express2.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path3 = req.path;
+  let capturedJsonResponse = void 0;
+  const originalResJson = res.json;
+  res.json = function(bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path3.startsWith("/api")) {
+      let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "\u2026";
+      }
+      log(logLine);
+    }
+  });
+  next();
+});
+(async () => {
+  const server = await registerRoutes(app);
+  app.use((req, res, next) => {
+    res.setTimeout(6e4, () => {
+      res.status(503).json({ message: "Request timeout" });
+    });
+    next();
+  });
+  app.use((err, _req, res, _next) => {
+    console.error("Server error:", err);
+    if (res.headersSent) {
+      return;
+    }
+    const status = err.status || err.statusCode || 500;
+    let message = err.message || "Internal Server Error";
+    if (err.code === "ETIMEDOUT" || err.code === "ECONNRESET") {
+      res.status(503).json({ message: "Service temporarily unavailable" });
+    } else if (err.name === "ValidationError") {
+      res.status(400).json({ message: "Invalid request data" });
+    } else {
+      res.status(status).json({ message });
+    }
+  });
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+  const port = 5e3;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
