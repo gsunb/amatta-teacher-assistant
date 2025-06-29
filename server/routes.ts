@@ -325,10 +325,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      res.json(user);
+      
+      // Check if user has required consents
+      const hasConsents = await storage.hasRequiredConsents(userId);
+      res.json({ ...user, hasRequiredConsents: hasConsents });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // User consent routes
+  app.get('/api/user/consents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const consents = await storage.getUserConsents(userId);
+      res.json(consents);
+    } catch (error) {
+      console.error("Error fetching consents:", error);
+      res.status(500).json({ message: "Failed to fetch consents" });
+    }
+  });
+
+  app.post('/api/user/consents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const consentData = req.body;
+
+      // Create or update consents
+      for (const [consentType, isConsented] of Object.entries(consentData)) {
+        try {
+          // Try to update existing consent
+          await storage.updateUserConsent(userId, consentType, isConsented as boolean);
+        } catch {
+          // If no existing consent, create new one
+          await storage.createUserConsent(userId, {
+            consentType,
+            consentVersion: "1.0",
+            isConsented: isConsented as boolean,
+            consentedAt: isConsented ? new Date() : null,
+          });
+        }
+      }
+
+      res.json({ message: "Consents updated successfully" });
+    } catch (error) {
+      console.error("Error updating consents:", error);
+      res.status(500).json({ message: "Failed to update consents" });
     }
   });
 

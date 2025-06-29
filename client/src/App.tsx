@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ChatBot from "@/components/ChatBot";
+import ConsentModal from "@/components/ConsentModal";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

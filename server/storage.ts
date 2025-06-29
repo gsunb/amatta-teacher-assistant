@@ -8,6 +8,7 @@ import {
   parentCommunications,
   notifications,
   backups,
+  userConsents,
   type User,
   type UpsertUser,
   type Schedule,
@@ -26,6 +27,8 @@ import {
   type InsertNotification,
   type Backup,
   type InsertBackup,
+  type UserConsent,
+  type InsertUserConsent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
@@ -476,6 +479,51 @@ export class DatabaseStorage implements IStorage {
       .update(backups)
       .set({ status })
       .where(and(eq(backups.id, id), eq(backups.userId, userId)));
+  }
+
+  // User consent operations
+  async getUserConsents(userId: string): Promise<UserConsent[]> {
+    return await db
+      .select()
+      .from(userConsents)
+      .where(eq(userConsents.userId, userId));
+  }
+
+  async createUserConsent(userId: string, consent: InsertUserConsent): Promise<UserConsent> {
+    const [userConsent] = await db
+      .insert(userConsents)
+      .values({ ...consent, userId })
+      .returning();
+    return userConsent;
+  }
+
+  async updateUserConsent(userId: string, consentType: string, isConsented: boolean): Promise<void> {
+    const now = new Date();
+    await db
+      .update(userConsents)
+      .set({
+        isConsented,
+        consentedAt: isConsented ? now : null,
+        withdrawnAt: !isConsented ? now : null,
+      })
+      .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consentType)));
+  }
+
+  async hasRequiredConsents(userId: string): Promise<boolean> {
+    const requiredConsentTypes = ['service_terms', 'privacy_policy', 'replit_oauth', 'data_responsibility'];
+    
+    const consents = await db
+      .select()
+      .from(userConsents)
+      .where(
+        and(
+          eq(userConsents.userId, userId),
+          eq(userConsents.isConsented, true),
+          inArray(userConsents.consentType, requiredConsentTypes)
+        )
+      );
+    
+    return consents.length >= requiredConsentTypes.length;
   }
 }
 
