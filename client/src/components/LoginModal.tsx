@@ -83,22 +83,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     onSuccess: (data: any) => {
       console.log("Password reset response:", data);
       toast({
-        title: "비밀번호 재설정",
-        description: data.resetLink ? "재설정 링크를 새 탭에서 열었습니다." : data.message,
+        title: "비밀번호 재설정하기",
+        description: "개발 모드에서는 서버 콘솔에서 재설정 링크를 확인할 수 있습니다.",
         duration: 5000,
       });
-      if (data.resetLink) {
-        // Open reset link in new tab for development
-        const newWindow = window.open(data.resetLink, '_blank', 'noopener,noreferrer');
-        if (!newWindow) {
-          // Fallback if popup blocked
-          toast({
-            title: "팝업 차단됨",
-            description: `링크를 수동으로 열어주세요: ${data.resetLink}`,
-            duration: 10000,
-          });
-        }
-      }
       setMode('email-login');
     },
     onError: (error: Error) => {

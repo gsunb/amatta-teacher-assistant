@@ -179,7 +179,15 @@ export default function Classes() {
       });
       return;
     }
-    createClassMutation.mutate(newClass);
+    
+    // Ensure consistent formatting - remove any existing "반" suffix and add it back
+    const cleanClassName = newClass.className.replace(/반$/, '') + '반';
+    const classData = {
+      ...newClass,
+      className: cleanClassName
+    };
+    
+    createClassMutation.mutate(classData);
   };
 
   const handleCreateStudent = () => {
@@ -310,7 +318,7 @@ export default function Classes() {
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-medium">{classItem.grade} {classItem.className}</h3>
+                          <h3 className="font-medium">{classItem.grade}학년 {classItem.className}</h3>
                           <p className="text-sm text-gray-500">{classItem.year}년도</p>
                         </div>
                         <div className="flex items-center space-x-1">

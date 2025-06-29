@@ -119,9 +119,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       return;
     }
 
-    const className = `${grade}학년 ${classNumber}반`;
     const classData: InsertClass = {
-      className: className,
+      className: `${classNumber}반`,
       grade: grade,
       year: new Date().getFullYear().toString(),
     };
