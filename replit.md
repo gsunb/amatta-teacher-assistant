@@ -183,6 +183,8 @@ Amatta is a Progressive Web Application (PWA) designed as a comprehensive AI ass
 - June 29, 2025. Fixed mobile consent modal UI issues: improved button visibility, sticky positioning, and touch-friendly interface optimization
 - June 29, 2025. Fixed Google OAuth redirect URI configuration issue by using REPLIT_DOMAINS environment variable
 - June 29, 2025. Implemented comprehensive email/password authentication: added bcrypt password hashing, user registration/login endpoints, updated database schema to support multiple auth providers
+- June 29, 2025. Improved onboarding class creation form: separated grade and class number fields with real-time preview, enhanced validation for Korean school structure
+- June 29, 2025. Simplified landing page design: single "시작하기" button opens unified login modal with all authentication options
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
