@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import LoginModal from "@/components/LoginModal";
 import { 
   GraduationCap, 
   Calendar, 
@@ -14,18 +14,10 @@ import {
   Check,
   Star
 } from "lucide-react";
-import { SiGoogle } from "react-icons/si";
 import amattaLogo from "@/assets/amatta-logo.png";
 
 export default function Landing() {
-  const [isGoogleAuthAvailable, setIsGoogleAuthAvailable] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/auth/google/available')
-      .then(res => res.json())
-      .then(data => setIsGoogleAuthAvailable(data.available))
-      .catch(() => setIsGoogleAuthAvailable(false));
-  }, []);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -43,7 +35,7 @@ export default function Landing() {
             </div>
             <div className="flex items-center space-x-6">
               <Button
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => setShowLoginModal(true)}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
               >
                 시작하기
@@ -293,37 +285,15 @@ export default function Landing() {
           <p className="text-xl text-blue-100 mb-10">
             수천 명의 교사들이 이미 Amatta로 더 스마트한 교실 관리를 경험하고 있습니다.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex justify-center">
             <Button
               size="lg"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => setShowLoginModal(true)}
               className="bg-white hover:bg-gray-50 text-blue-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
             >
-              Replit으로 시작하기
+              지금 시작하기
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            
-            {isGoogleAuthAvailable && (
-              <Button
-                size="lg"
-                onClick={() => window.location.href = "/api/auth/google"}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-              >
-                <SiGoogle className="mr-2 h-5 w-5" />
-                Google로 시작하기
-              </Button>
-            )}
-            
-            <Link href="/signup">
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-              >
-                이메일로 가입하기
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
