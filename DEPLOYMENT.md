@@ -52,11 +52,11 @@ https://your-project-name.vercel.app/api/auth/google/callback
 ### 문제 해결
 
 **404 NOT_FOUND 오류 해결:**
-1. vercel.json 설정이 올바른지 확인 (functions 방식 사용)
-2. Vercel Dashboard → Functions 탭에서 빌드 로그 확인
-3. vercel-build.sh 스크립트가 실행되었는지 확인
-4. 환경변수 `NODE_ENV=production` 설정 확인
-5. 서버가 정적 파일을 올바르게 서빙하는지 확인
+1. api/index.js 파일이 올바르게 생성되었는지 확인
+2. vercel.json에서 올바른 라우팅 설정 확인
+3. Vercel Dashboard → Functions 탭에서 배포 로그 확인
+4. /api/health 엔드포인트로 API 작동 테스트
+5. 브라우저에서 루트 경로(/) 접속하여 페이지 로딩 확인
 
 **로그인 오류**: Vercel Functions 탭에서 에러 로그 확인
 **데이터베이스 오류**: DATABASE_URL 환경변수 재확인
