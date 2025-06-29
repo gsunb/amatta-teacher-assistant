@@ -13,6 +13,7 @@ import {
   CalendarCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import amattaLogo from "@/assets/amatta-logo.png";
 
 const navigation = [
   { name: '대시보드', href: '/', icon: Home },
@@ -36,7 +37,7 @@ export default function Sidebar() {
         <div className="flex items-center flex-shrink-0 px-4 pb-6">
           <Link href="/" className="flex items-center space-x-3">
             <img 
-              src="/attached_assets/image_1751162071875.png" 
+              src={amattaLogo} 
               alt="Amatta 로고" 
               className="h-10 w-auto"
             />

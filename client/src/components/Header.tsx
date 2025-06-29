@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Settings, Menu, X } from "lucide-react";
+import amattaLogo from "@/assets/amatta-logo.png";
 
 export default function Header() {
   const [location] = useLocation();
@@ -36,7 +37,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3 flex-shrink-0">
               <img 
-                src="/attached_assets/image_1751162071875.png" 
+                src={amattaLogo} 
                 alt="Amatta 로고" 
                 className="h-10 w-auto"
               />

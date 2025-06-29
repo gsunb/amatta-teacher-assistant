@@ -15,6 +15,7 @@ import {
   Star
 } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
+import amattaLogo from "@/assets/amatta-logo.png";
 
 export default function Landing() {
   const [isGoogleAuthAvailable, setIsGoogleAuthAvailable] = useState(false);
