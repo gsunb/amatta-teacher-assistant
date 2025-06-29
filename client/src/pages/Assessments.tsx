@@ -44,12 +44,11 @@ export default function Assessments() {
         if (parts.length >= 3) {
           items.push({
             subject: parts[0],
-            unit: parts[1],
-            task: parts[2],
-            studentName: parts[3] || undefined,
-            score: parts[4] ? parseInt(parts[4]) : undefined,
-            maxScore: parts[5] ? parseInt(parts[5]) : undefined,
-            notes: parts[6] || undefined,
+            examName: parts[1],
+            studentName: parts[2] || undefined,
+            score: parts[3] ? parseInt(parts[3]) : undefined,
+            maxScore: parts[4] ? parseInt(parts[4]) : undefined,
+            notes: parts[5] || undefined,
           });
         }
       }
@@ -96,14 +95,14 @@ export default function Assessments() {
   });
 
   const downloadTemplate = () => {
-    // Create simple Excel template with only essential fields
+    // Create simple Excel template with simplified structure
     const templateData = [
-      ['번호', '이름', '과목', '단원', '종류', '점수', '만점'],
-      [1, '김철수', '수학', '2차 함수', '중간고사', 85, 100],
-      [2, '이영희', '국어', '문학', '수행평가', 92, 100],
-      [3, '박민수', '영어', '독해', '단어시험', 78, 100],
-      [4, '정수현', '과학', '물리', '실험보고서', 88, 100],
-      [5, '한지원', '사회', '근현대사', '발표과제', 95, 100]
+      ['번호', '이름', '과목', '시험명', '점수', '만점'],
+      [1, '김철수', '수학', '2차 함수 중간고사', 85, 100],
+      [2, '이영희', '국어', '문학 수행평가', 92, 100],
+      [3, '박민수', '영어', '독해 단어시험', 78, 100],
+      [4, '정수현', '과학', '물리 실험보고서', 88, 100],
+      [5, '한지원', '사회', '근현대사 발표과제', 95, 100]
     ];
 
     // Create workbook and worksheet
@@ -115,8 +114,7 @@ export default function Assessments() {
       { wch: 8 },  // 번호
       { wch: 12 }, // 이름
       { wch: 10 }, // 과목
-      { wch: 15 }, // 단원
-      { wch: 12 }, // 종류
+      { wch: 20 }, // 시험명
       { wch: 8 },  // 점수
       { wch: 8 }   // 만점
     ];
@@ -181,14 +179,13 @@ export default function Assessments() {
         const assessments: InsertAssessment[] = [];
 
         for (const row of dataRows) {
-          if (row.length >= 7 && row[1] && row[2] && row[4]) {
+          if (row.length >= 6 && row[1] && row[2] && row[3]) {
             assessments.push({
               studentName: String(row[1] || '').trim(), // 이름
               subject: String(row[2] || '').trim(),     // 과목
-              unit: String(row[3] || '').trim(),        // 단원
-              task: String(row[4] || '').trim(),        // 종류
-              score: Number(row[5]) || 0,               // 점수
-              maxScore: Number(row[6]) || 100,          // 만점
+              examName: String(row[3] || '').trim(),    // 시험명
+              score: Number(row[4]) || 0,               // 점수
+              maxScore: Number(row[5]) || 100,          // 만점
             });
           }
         }
@@ -196,7 +193,7 @@ export default function Assessments() {
         if (assessments.length > 0) {
           // Convert to text format for existing upload function
           const textData = assessments.map(a => 
-            `${a.subject}, ${a.unit}, ${a.task}, ${a.studentName}, ${a.score}, ${a.maxScore}`
+            `${a.subject}, ${a.examName}, ${a.studentName}, ${a.score}, ${a.maxScore}`
           ).join('\n');
           
           setUploadText(textData);
@@ -258,15 +255,14 @@ export default function Assessments() {
     );
   }
 
-  // Get unique subjects, units and exam types for filters
+  // Get unique subjects and exam names for filters
   const uniqueSubjects = Array.from(new Set(assessments.map(a => a.subject)));
-  const uniqueUnits = Array.from(new Set(assessments.map(a => a.unit)));
-  const uniqueExamTypes = Array.from(new Set(assessments.map(a => a.task)));
+  const uniqueExamNames = Array.from(new Set(assessments.map(a => a.examName)));
 
   // Filter assessments based on selected filters
   const filteredAssessments = assessments.filter(assessment => {
     const subjectMatch = filterSubject === "all" || assessment.subject === filterSubject;
-    const examMatch = filterExam === "all" || assessment.task === filterExam;
+    const examMatch = filterExam === "all" || assessment.examName === filterExam;
     return subjectMatch && examMatch;
   });
 
@@ -319,13 +315,13 @@ export default function Assessments() {
     return acc;
   }, {} as Record<string, { total: number; count: number; scores: number[] }>);
 
-  // Group assessments by task for comparison view
-  const taskGroups = assessments.reduce((acc, assessment) => {
-    const taskKey = `${assessment.subject} - ${assessment.unit} - ${assessment.task}`;
-    if (!acc[taskKey]) {
-      acc[taskKey] = [];
+  // Group assessments by exam for comparison view
+  const examGroups = assessments.reduce((acc, assessment) => {
+    const examKey = `${assessment.subject} - ${assessment.examName}`;
+    if (!acc[examKey]) {
+      acc[examKey] = [];
     }
-    acc[taskKey].push(assessment);
+    acc[examKey].push(assessment);
     return acc;
   }, {} as Record<string, Assessment[]>);
 
@@ -669,10 +665,10 @@ export default function Assessments() {
               <div className="border-t pt-4">
                 <h4 className="font-medium text-gray-900 mb-2">텍스트 직접 입력</h4>
                 <p className="text-sm text-gray-600 mb-2">
-                  각 줄에 다음 형식으로 입력하세요: 과목, 단원, 평가항목, 학생이름, 점수, 만점
+                  각 줄에 다음 형식으로 입력하세요: 과목, 시험명, 학생이름, 점수, 만점
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  예: 수학, 2차 함수, 중간고사, 김철수, 85, 100
+                  예: 수학, 2차 함수 중간고사, 김철수, 85, 100
                 </p>
                 <Textarea
                   value={uploadText}
