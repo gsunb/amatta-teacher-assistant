@@ -64,6 +64,29 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (data: { email: string }) => {
+      return await apiRequest("POST", "/api/auth/forgot-password", data);
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "비밀번호 재설정",
+        description: data.debug ? `재설정 링크: ${data.resetLink}` : "비밀번호 재설정 이메일이 발송되었습니다.",
+      });
+      if (data.debug && data.resetLink) {
+        window.open(data.resetLink, '_blank');
+      }
+      setMode('email-login');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "오류",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEmailLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -88,6 +111,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       return;
     }
     signupMutation.mutate({ email, password, firstName: firstName || undefined, lastName: lastName || undefined });
+  };
+
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "입력 오류",
+        description: "이메일을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    forgotPasswordMutation.mutate({ email });
   };
 
   const handleGoogleLogin = () => {
@@ -120,6 +156,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             {mode === 'choose' && '로그인 방법을 선택하세요'}
             {mode === 'email-login' && '이메일로 로그인'}
             {mode === 'email-signup' && '계정 만들기'}
+            {mode === 'forgot-password' && '비밀번호 찾기'}
           </DialogTitle>
         </DialogHeader>
 
@@ -218,6 +255,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <Button
                 type="button"
                 variant="link"
+                className="w-full text-sm"
+                onClick={() => setMode('forgot-password')}
+              >
+                비밀번호를 잊으셨나요?
+              </Button>
+              <Button
+                type="button"
+                variant="link"
                 className="w-full"
                 onClick={() => setMode('choose')}
               >
@@ -299,6 +344,48 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 onClick={() => setMode('email-login')}
               >
                 이미 계정이 있나요? 로그인하기
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => setMode('choose')}
+              >
+                다른 방법으로 로그인
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'forgot-password' && (
+          <form onSubmit={handleForgotPassword} className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="email">이메일</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="가입한 이메일을 입력하세요"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={forgotPasswordMutation.isPending}
+              >
+                {forgotPasswordMutation.isPending ? "전송 중..." : "비밀번호 재설정 링크 보내기"}
+              </Button>
+              <Separator />
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => setMode('email-login')}
+              >
+                로그인으로 돌아가기
               </Button>
               <Button
                 type="button"
