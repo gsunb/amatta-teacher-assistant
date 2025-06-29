@@ -30,7 +30,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [geminiApiKey, setGeminiApiKey] = useState("");
-  const [className, setClassName] = useState("");
+  const [grade, setGrade] = useState("");
+  const [classNumber, setClassNumber] = useState("");
   const [classDescription, setClassDescription] = useState("");
   const [studentCount, setStudentCount] = useState("");
 
@@ -109,18 +110,19 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   const handleClassSubmit = () => {
-    if (!className.trim()) {
+    if (!grade.trim() || !classNumber.trim()) {
       toast({
         title: "알림",
-        description: "학급명을 입력해주세요.",
+        description: "학년과 반을 모두 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
+    const className = `${grade}학년 ${classNumber}반`;
     const classData: InsertClass = {
       className: className,
-      grade: '',
+      grade: grade,
       year: new Date().getFullYear().toString(),
     };
 
@@ -283,17 +285,38 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <CardContent className="p-6">
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="class-name" className="text-base font-medium">
-                      학급명 <Badge variant="secondary">필수</Badge>
-                    </Label>
-                    <Input
-                      id="class-name"
-                      value={className}
-                      onChange={(e) => setClassName(e.target.value)}
-                      placeholder="예: 3학년 1반, 중학교 2-3반"
-                      className="text-base"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="grade" className="text-base font-medium">
+                        학년 <Badge variant="secondary">필수</Badge>
+                      </Label>
+                      <Input
+                        id="grade"
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        placeholder="예: 3, 중2"
+                        className="text-base"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="class-number" className="text-base font-medium">
+                        반 <Badge variant="secondary">필수</Badge>
+                      </Label>
+                      <Input
+                        id="class-number"
+                        value={classNumber}
+                        onChange={(e) => setClassNumber(e.target.value)}
+                        placeholder="예: 1, 3"
+                        className="text-base"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>미리보기:</strong> {grade && classNumber ? `${grade}학년 ${classNumber}반` : '학년과 반을 입력하면 미리보기가 표시됩니다'}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
