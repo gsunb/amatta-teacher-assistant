@@ -624,10 +624,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const line of lines) {
         const parts = line.split(',').map((part: string) => part.trim());
         if (parts.length >= 2) {
-          const studentNumber = parts[0];
-          const name = parts[1];
+          const name = parts[0];
+          const studentNumber = parts[1];
           
-          if (studentNumber && name) {
+          if (name && studentNumber) {
             students.push({
               studentNumber,
               name,
