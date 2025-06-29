@@ -148,7 +148,7 @@ export default function Home() {
               <div className="relative">
                 <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 flex items-center">
                   <Sparkles className="h-5 w-5 text-blue-600 mr-2" />
-                  자연어 명령 입력
+                  오늘의 학교 생활을 기록해보세요.
                 </h3>
                 
                 <Textarea
@@ -171,11 +171,11 @@ export default function Home() {
                     <Sparkles className="h-4 w-4 text-primary" />
                     <span>AI가 자연어로 명령을 이해합니다</span>
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex justify-end">
                     <Button 
                       onClick={handleSubmitCommand}
                       disabled={processCommandMutation.isPending}
-                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       <Send className="h-4 w-4 mr-2" />
                       실행하기
