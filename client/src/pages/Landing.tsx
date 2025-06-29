@@ -42,12 +42,6 @@ export default function Landing() {
               <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Amatta</span>
             </div>
             <div className="flex items-center space-x-6">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
-                기능
-              </a>
-              <a href="#demo" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
-                데모
-              </a>
               <Button
                 onClick={() => window.location.href = "/api/login"}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
@@ -87,11 +81,9 @@ export default function Landing() {
               정신없는 학교 생활, 자연어로 기록해요
             </p>
             
-            <div className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto space-y-3">
-              <p><span className="font-semibold text-blue-600">"김철수가 장난을 쳤다"</span> → 자동으로 생활기록 저장</p>
-              <p><span className="font-semibold text-green-600">"내일 2교시에 수학 수업"</span> → 일정 자동 등록</p>
-              <p className="font-medium text-gray-700">복잡한 클릭 없이, 말하는 것처럼 간단하게</p>
-            </div>
+            <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto font-medium">
+              복잡한 클릭 없이, 말하는 것처럼 간단하게
+            </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button
@@ -140,8 +132,8 @@ export default function Landing() {
                       <GraduationCap className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <div className="h-5 bg-gray-800 rounded-lg w-32 mb-2"></div>
-                      <div className="h-3 bg-gray-400 rounded w-20"></div>
+                      <h3 className="text-lg font-bold text-gray-800">Amatta 대시보드</h3>
+                      <p className="text-sm text-gray-500">교사 AI 도우미</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -154,29 +146,38 @@ export default function Landing() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border border-blue-200">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="h-4 bg-blue-300 rounded w-16"></div>
-                      <Badge className="bg-blue-600 text-white text-xs">84%</Badge>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">일정 관리</span>
+                      </div>
+                      <span className="text-xs text-blue-600 font-medium">5개</span>
                     </div>
-                    <div className="h-8 bg-blue-600 rounded-lg w-16 mb-3"></div>
-                    <div className="h-3 bg-blue-300 rounded w-24"></div>
+                    <div className="text-2xl font-bold text-blue-700 mb-2">오늘의 수업</div>
+                    <div className="text-sm text-blue-600">3교시 수학, 5교시 과학</div>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl border border-indigo-200">
+                  <div className="bg-gradient-to-br from-red-50 to-orange-100 p-6 rounded-2xl border border-red-200">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="h-4 bg-indigo-300 rounded w-20"></div>
-                      <Badge className="bg-indigo-600 text-white text-xs">87%</Badge>
+                      <div className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-800">누가기록</span>
+                      </div>
+                      <span className="text-xs text-red-600 font-medium">2건</span>
                     </div>
-                    <div className="h-8 bg-indigo-600 rounded-lg w-16 mb-3"></div>
-                    <div className="h-3 bg-indigo-300 rounded w-28"></div>
+                    <div className="text-2xl font-bold text-red-700 mb-2">최근 기록</div>
+                    <div className="text-sm text-red-600">김철수 주의사항</div>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border border-purple-200">
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl border border-green-200">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="h-4 bg-purple-300 rounded w-18"></div>
-                      <Badge className="bg-purple-600 text-white text-xs">78%</Badge>
+                      <div className="flex items-center space-x-2">
+                        <BarChart className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">평가 관리</span>
+                      </div>
+                      <span className="text-xs text-green-600 font-medium">완료</span>
                     </div>
-                    <div className="h-8 bg-purple-600 rounded-lg w-16 mb-3"></div>
-                    <div className="h-3 bg-purple-300 rounded w-22"></div>
+                    <div className="text-2xl font-bold text-green-700 mb-2">수학 시험</div>
+                    <div className="text-sm text-green-600">평균 85점</div>
                   </div>
                 </div>
                 
@@ -186,18 +187,18 @@ export default function Landing() {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <div className="h-3 bg-gray-300 rounded w-48"></div>
+                      <span className="text-sm font-medium text-gray-800">오늘 3교시 수학 수업 완료</span>
                     </div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                    <span className="text-xs text-gray-500">완료</span>
                   </div>
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <Calendar className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <div className="h-3 bg-gray-300 rounded w-40"></div>
+                      <span className="text-sm font-medium text-gray-800">내일 학부모 상담 예정</span>
                     </div>
-                    <div className="h-3 bg-gray-200 rounded w-20"></div>
+                    <span className="text-xs text-gray-500">14:00</span>
                   </div>
                 </div>
               </div>
@@ -302,9 +303,11 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-8 md:mb-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
+              <img 
+                src={amattaLogo} 
+                alt="Amatta 로고" 
+                className="h-10 w-auto"
+              />
               <span className="text-2xl font-bold">Amatta</span>
             </div>
             <div className="text-gray-400 text-sm">
