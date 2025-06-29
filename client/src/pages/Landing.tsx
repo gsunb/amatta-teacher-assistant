@@ -35,7 +35,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <img 
-                src="/attached_assets/image_1751162071875.png" 
+                src={amattaLogo} 
                 alt="Amatta 로고" 
                 className="h-10 w-auto"
               />
@@ -65,7 +65,7 @@ export default function Landing() {
           <div className="text-center">
             <div className="flex justify-center mb-8">
               <img 
-                src="/attached_assets/image_1751162071875.png" 
+                src={amattaLogo} 
                 alt="Amatta 로고" 
                 className="h-20 w-auto"
               />
