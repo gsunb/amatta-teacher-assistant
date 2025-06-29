@@ -39,12 +39,31 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  // Add timeout middleware
+  app.use((req, res, next) => {
+    res.setTimeout(60000, () => {
+      res.status(503).json({ message: "Request timeout" });
+    });
+    next();
+  });
 
-    res.status(status).json({ message });
-    throw err;
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("Server error:", err);
+    
+    if (res.headersSent) {
+      return;
+    }
+
+    const status = err.status || err.statusCode || 500;
+    let message = err.message || "Internal Server Error";
+    
+    if (err.code === 'ETIMEDOUT' || err.code === 'ECONNRESET') {
+      res.status(503).json({ message: "Service temporarily unavailable" });
+    } else if (err.name === 'ValidationError') {
+      res.status(400).json({ message: "Invalid request data" });
+    } else {
+      res.status(status).json({ message });
+    }
   });
 
   // importantly only setup vite in development and after
