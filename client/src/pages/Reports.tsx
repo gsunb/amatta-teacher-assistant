@@ -233,7 +233,7 @@ ${students.map(s => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
-              <span>출결 주의 학생</span>
+              <span>지원 필요 학생</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
