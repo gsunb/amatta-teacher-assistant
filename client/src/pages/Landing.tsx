@@ -187,7 +187,7 @@ export default function Landing() {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-800">오늘 3교시 수학 수업 완료</span>
+                      <span className="text-sm font-medium text-gray-800">오늘 오후 3시 부장회의 완료</span>
                     </div>
                     <span className="text-xs text-gray-500">완료</span>
                   </div>
@@ -238,7 +238,7 @@ export default function Landing() {
                   "다음 주 화요일 학부모 상담" → 스케줄에 추가
                 </p>
                 <div className="bg-blue-100 p-3 rounded-lg">
-                  <p className="text-sm text-blue-800 font-medium">예시: 수업, 회의, 상담 일정을 자연어로 간편하게</p>
+                  <p className="text-sm text-blue-800 font-medium">예시: 수업, 회의, 상담 일정을 자연어로 한번에</p>
                 </div>
               </CardContent>
             </Card>
