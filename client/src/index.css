@@ -57,3 +57,27 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar styles for consent modal */
+.consent-modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.consent-modal-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.consent-modal-scroll::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.consent-modal-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.consent-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

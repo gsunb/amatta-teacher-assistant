@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Eye, FileText, Key, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
-import { TEACHER_CONSENT_ITEMS, AMATTA_PRIVACY_POLICY, SERVICE_TERMS } from "@shared/privacy-policy";
+import { Shield, Eye, FileText, UserCheck } from "lucide-react";
+import { TEACHER_CONSENT_ITEMS } from "@shared/privacy-policy";
 
 interface ConsentModalProps {
   isOpen: boolean;
@@ -19,13 +18,24 @@ interface ConsentModalProps {
 
 export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModalProps) {
   const { toast } = useToast();
-  const [consents, setConsents] = useState<Record<string, boolean>>({});
-  const [showFullPolicy, setShowFullPolicy] = useState(false);
-  const [showFullTerms, setShowFullTerms] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+
+  const handleCheckboxChange = (itemId: string, checked: boolean) => {
+    setCheckedItems(prev => ({ ...prev, [itemId]: checked }));
+  };
+
+  const allRequiredChecked = TEACHER_CONSENT_ITEMS
+    .filter(item => item.required)
+    .every(item => checkedItems[item.id]);
 
   const submitConsentMutation = useMutation({
-    mutationFn: async (consentData: Record<string, boolean>) => {
-      return await apiRequest("/api/user/consents", "POST", consentData);
+    mutationFn: async () => {
+      const consents = TEACHER_CONSENT_ITEMS.map(item => ({
+        consentType: item.id,
+        isConsented: checkedItems[item.id] || false
+      }));
+      
+      return await apiRequest('/api/user/consents', 'POST', { consents });
     },
     onSuccess: () => {
       toast({
@@ -36,48 +46,29 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
     },
     onError: (error: Error) => {
       toast({
-        title: "동의 처리 실패",
-        description: "다시 시도해 주세요. 문제가 지속되면 amatta.edu@gmail.com으로 문의해 주세요.",
+        title: "오류 발생",
+        description: "동의 처리 중 문제가 발생했습니다. 다시 시도해 주세요.",
         variant: "destructive",
       });
     },
   });
 
-  const handleConsentChange = (itemId: string, checked: boolean) => {
-    setConsents(prev => ({ ...prev, [itemId]: checked }));
-  };
-
   const handleSubmit = () => {
-    const requiredItems = TEACHER_CONSENT_ITEMS.filter(item => item.required);
-    const missingConsents = requiredItems.filter(item => !consents[item.id]);
-
-    if (missingConsents.length > 0) {
+    if (!allRequiredChecked) {
       toast({
-        title: "필수 동의 항목 확인",
-        description: "필수 동의 항목을 모두 체크해 주세요.",
+        title: "필수 동의 필요",
+        description: "필수 항목에 모두 동의해 주세요.",
         variant: "destructive",
       });
       return;
     }
-
-    submitConsentMutation.mutate(consents);
-  };
-
-  const getConsentIcon = (itemId: string) => {
-    switch (itemId) {
-      case 'service_terms': return <FileText className="h-5 w-5 text-blue-600" />;
-      case 'privacy_policy': return <Shield className="h-5 w-5 text-green-600" />;
-      case 'replit_oauth': return <Key className="h-5 w-5 text-purple-600" />;
-      case 'ai_service_consent': return <Eye className="h-5 w-5 text-orange-600" />;
-      case 'data_responsibility': return <UserCheck className="h-5 w-5 text-red-600" />;
-      default: return <Shield className="h-5 w-5 text-gray-600" />;
-    }
+    submitConsentMutation.mutate();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0 border-b">
           <DialogTitle className="flex items-center text-2xl">
             <Shield className="w-7 h-7 mr-3 text-blue-600" />
             Amatta 서비스 이용 동의
@@ -87,80 +78,47 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
           </p>
         </DialogHeader>
 
-        <div className="relative flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <div className="space-y-6 pb-8">
-              {/* Service Terms Preview */}
+        <div className="flex-1 overflow-y-auto consent-modal-scroll">
+          <div className="p-6 space-y-6">
+            {/* Service Terms Summary */}
             <Card className="border-blue-200">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                    서비스 이용약관
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFullTerms(!showFullTerms)}
-                  >
-                    {showFullTerms ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    {showFullTerms ? '접기' : '전체 보기'}
-                  </Button>
+                <CardTitle className="flex items-center text-lg">
+                  <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                  서비스 이용약관
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                  <p className="text-sm text-blue-800">
-                    Amatta는 교육 목적의 무료 서비스로, 교사의 학급 관리 업무를 지원합니다.
-                    개인정보 보호와 데이터 보안을 최우선으로 합니다.
-                  </p>
+                <div className="text-sm text-gray-600 space-y-2">
+                  <p>Amatta는 교사들을 위한 AI 도우미 서비스로, 교육 목적으로만 사용되어야 합니다.</p>
+                  <ul className="list-disc pl-5 space-y-1 text-xs">
+                    <li>교육 목적으로만 사용</li>
+                    <li>타인과 계정 공유 금지</li>
+                    <li>정확한 정보 입력 및 관리</li>
+                    <li>시스템 보안 수칙 준수</li>
+                  </ul>
                 </div>
-                {showFullTerms && (
-                  <div className="text-sm text-gray-700 whitespace-pre-line">
-                    {SERVICE_TERMS.content}
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-            {/* Privacy Policy Preview */}
+            {/* Privacy Policy Summary */}
             <Card className="border-green-200">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <div className="flex items-center">
-                    <Shield className="h-5 w-5 text-green-600 mr-2" />
-                    개인정보 처리방침
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFullPolicy(!showFullPolicy)}
-                  >
-                    {showFullPolicy ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    {showFullPolicy ? '접기' : '전체 보기'}
-                  </Button>
+                <CardTitle className="flex items-center text-lg">
+                  <Eye className="h-5 w-5 text-green-600 mr-2" />
+                  개인정보 처리방침
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-green-50 p-4 rounded-lg mb-4">
-                  <p className="text-sm text-green-800">
-                    수집하는 개인정보: 교사 기본정보(Replit OAuth), 학생 교육활동 기록
-                    <br />
-                    보관 기간: 계정 삭제 시 즉시 완전 삭제 (별도 백업 없음)
-                  </p>
+                <div className="text-sm text-gray-600 space-y-2">
+                  <p>Amatta는 교육 서비스 제공을 위해 필요한 최소한의 개인정보만을 수집합니다.</p>
+                  <ul className="list-disc pl-5 space-y-1 text-xs">
+                    <li>교사 기본 정보 (이름, 이메일)</li>
+                    <li>학생 학습 기록 (성명, 성적)</li>
+                    <li>교육 활동 데이터 (일정, 평가)</li>
+                    <li>시스템 이용 기록</li>
+                  </ul>
                 </div>
-                {showFullPolicy && (
-                  <div className="space-y-4">
-                    {AMATTA_PRIVACY_POLICY.privacyPolicy.sections.map((section) => (
-                      <div key={section.id}>
-                        <h4 className="font-semibold text-gray-900 mb-2">{section.title}</h4>
-                        <div className="text-sm text-gray-700 whitespace-pre-line pl-4 border-l-2 border-gray-200">
-                          {section.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -168,51 +126,62 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
 
             {/* Consent Items */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">동의 항목</h3>
+              <h3 className="text-lg font-semibold flex items-center">
+                <UserCheck className="h-5 w-5 text-purple-600 mr-2" />
+                동의 항목
+              </h3>
+              
               {TEACHER_CONSENT_ITEMS.map((item) => (
-                <Card key={item.id} className={`border-2 ${consents[item.id] ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}`}>
+                <Card key={item.id} className={`border transition-colors ${
+                  item.required 
+                    ? checkedItems[item.id] 
+                      ? 'border-green-300 bg-green-50' 
+                      : 'border-red-300 bg-red-50'
+                    : checkedItems[item.id]
+                      ? 'border-blue-300 bg-blue-50'
+                      : 'border-gray-200'
+                }`}>
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">
                       <Checkbox
                         id={item.id}
-                        checked={consents[item.id] || false}
-                        onCheckedChange={(checked) => handleConsentChange(item.id, checked as boolean)}
+                        checked={checkedItems[item.id] || false}
+                        onCheckedChange={(checked) => handleCheckboxChange(item.id, checked as boolean)}
                         className="mt-1"
                       />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          {getConsentIcon(item.id)}
-                          <label htmlFor={item.id} className="text-sm font-medium text-gray-900 cursor-pointer">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label 
+                            htmlFor={item.id}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
                             {item.title}
                           </label>
-                          {item.required && (
-                            <Badge variant="destructive" className="text-xs">필수</Badge>
-                          )}
-                          {!item.required && (
-                            <Badge variant="secondary" className="text-xs">선택</Badge>
-                          )}
+                          <Badge variant={item.required ? "destructive" : "secondary"} className="text-xs">
+                            {item.required ? "필수" : "선택"}
+                          </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                        <div className="space-y-1">
-                          {item.details.map((detail, index) => (
-                            <div key={index} className="flex items-center text-xs text-gray-500">
-                              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2" />
-                              {detail}
-                            </div>
-                          ))}
-                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+                        {'details' in item && item.details && (
+                          <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded border-l-2 border-blue-200">
+                            <ul className="list-disc pl-4 space-y-1">
+                              {Array.from(item.details).map((detail, idx) => (
+                                <li key={idx}>{detail}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </div>
-          
-          {/* Scroll indicator */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none flex items-center justify-center">
-            <div className="text-xs text-gray-500 animate-pulse bg-white/80 px-3 py-1 rounded-full border border-gray-200">
-              ↓ 스크롤하여 더 보기
+
+            <div className="pb-8">
+              <p className="text-xs text-gray-500 text-center">
+                개인정보 처리방침 전문은 설정 &gt; 개인정보처리방침에서 확인하실 수 있습니다.
+              </p>
             </div>
           </div>
         </div>
@@ -224,15 +193,8 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
             </div>
             <div className="flex space-x-3 w-full sm:w-auto">
               <Button
-                variant="outline"
-                onClick={() => window.location.href = "/api/logout"}
-                className="flex-1 sm:flex-none"
-              >
-                취소
-              </Button>
-              <Button
                 onClick={handleSubmit}
-                disabled={submitConsentMutation.isPending}
+                disabled={!allRequiredChecked || submitConsentMutation.isPending}
                 className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none"
               >
                 {submitConsentMutation.isPending ? "처리 중..." : "동의하고 시작하기"}
