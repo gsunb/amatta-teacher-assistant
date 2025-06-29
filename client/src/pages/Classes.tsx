@@ -196,20 +196,20 @@ export default function Classes() {
 
   const downloadTemplate = () => {
     const templateData = [
-      ['번호', '이름'],
-      ['1', '김철수'],
-      ['2', '이영희'],
-      ['3', '박민수'],
-      ['4', '정수현'],
-      ['5', '한지원']
+      ['이름', '번호'],
+      ['김철수', '1'],
+      ['이영희', '2'],
+      ['박민수', '3'],
+      ['정수현', '4'],
+      ['한지원', '5']
     ];
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(templateData);
     
     ws['!cols'] = [
-      { wch: 8 },  // 번호
       { wch: 12 }, // 이름
+      { wch: 8 },  // 번호
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, '학생명단');
@@ -235,8 +235,8 @@ export default function Classes() {
 
         const dataRows = rows.slice(1);
         const studentsText = dataRows
-          .filter(row => row.length >= 2 && row[1])
-          .map(row => `${row[1]}, ${row[0]}`)
+          .filter(row => row.length >= 2 && row[0])
+          .map(row => `${row[0]}, ${row[1]}`)
           .join('\n');
 
         uploadStudentsMutation.mutate(studentsText);
