@@ -146,6 +146,18 @@ export const backups = pgTable("backups", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User consent records
+export const userConsents = pgTable("user_consents", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  consentType: text("consent_type").notNull(), // service_terms, privacy_policy, replit_oauth, ai_service_consent, data_responsibility
+  consentVersion: text("consent_version").notNull().default("1.0"),
+  isConsented: boolean("is_consented").notNull().default(false),
+  consentedAt: timestamp("consented_at"),
+  withdrawnAt: timestamp("withdrawn_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertScheduleSchema = createInsertSchema(schedules).omit({
   id: true,
@@ -200,6 +212,12 @@ export const insertBackupSchema = createInsertSchema(backups).omit({
   createdAt: true,
 });
 
+export const insertUserConsentSchema = createInsertSchema(userConsents).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -220,3 +238,5 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Backup = typeof backups.$inferSelect;
 export type InsertBackup = z.infer<typeof insertBackupSchema>;
+export type UserConsent = typeof userConsents.$inferSelect;
+export type InsertUserConsent = z.infer<typeof insertUserConsentSchema>;

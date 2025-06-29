@@ -89,6 +89,12 @@ export interface IStorage {
   getBackups(userId: string): Promise<Backup[]>;
   createBackup(userId: string, backup: InsertBackup): Promise<Backup>;
   updateBackupStatus(userId: string, id: number, status: string): Promise<void>;
+
+  // User consent operations
+  getUserConsents(userId: string): Promise<UserConsent[]>;
+  createUserConsent(userId: string, consent: InsertUserConsent): Promise<UserConsent>;
+  updateUserConsent(userId: string, consentType: string, isConsented: boolean): Promise<void>;
+  hasRequiredConsents(userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {

@@ -1,0 +1,578 @@
+네! **Amatta** 서비스로 브랜딩하고 통일된 이메일 주소로 수정해드리겠습니다.
+
+## **🏫 Amatta 브랜딩 적용**
+
+### **Step 1: 개인정보 처리방침 및 약관 수정**
+
+**`/lib/privacy/simple-terms.ts` 수정:**
+
+```typescript
+export const SIMPLE_PRIVACY_POLICY = {
+  version: '1.0',
+  effectiveDate: '2024-01-01',
+  
+  privacyPolicy: {
+    title: 'Amatta 개인정보 처리방침',
+    sections: [
+      {
+        id: 'purpose',
+        title: '개인정보의 처리 목적',
+        content: `
+Amatta 학급관리시스템은 다음의 목적으로 개인정보를 처리합니다:
+
+1. 서비스 제공
+   - 교사 계정 관리 및 로그인
+   - 학급 관리 및 학생 정보 기록
+   - 일정 관리 및 메모 기능
+
+2. 교육 활동 지원
+   - 성적 기록 및 관리
+   - 누가기록 작성
+   - 학부모 상담 기록
+        `
+      },
+      {
+        id: 'items',
+        title: '수집하는 개인정보 항목',
+        content: `
+1. 교사 정보
+   - 직접입력: 이름, 이메일
+   - 소셜로그인 시 자동수집: 
+     • 구글: 프로필 정보(이름, 이메일, 프로필 사진)
+     • : 프로필 정보(이름, 이메일)
+   - 자동수집: 로그인 시간, IP주소
+
+2. 학생 정보 (교사가 직접 입력)
+   - 필수: 이름, 번호
+   - 선택: 성적, 활동기록, 상담내용
+
+3. 학부모 정보 (상담 시에만)
+   - 선택: 연락처, 상담내용
+        `
+      },
+      {
+        id: 'third_party',
+        title: '제3자 정보 제공업체',
+        content: `
+소셜 로그인 서비스 이용 시 다음 업체로부터 정보를 제공받습니다:
+
+1. Google LLC
+   - 제공받는 정보: 이름, 이메일, 프로필 사진
+   - 목적: 간편 로그인 및 계정 생성
+   - 해당 업체 개인정보처리방침: https://policies.google.com/privacy
+
+2.  (Kakao Corp.)
+   - 제공받는 정보: 이름, 이메일
+   - 목적: 간편 로그인 및 계정 생성
+   - 해당 업체 개인정보처리방침: https://policy.kakao.com/kr/privacy
+
+※ 소셜 로그인 사용을 원하지 않는 경우 이메일로 직접 가입 가능
+        `
+      },
+      {
+        id: 'retention',
+        title: '개인정보 보유 기간',
+        content: `
+• 교사 계정 삭제 시 즉시 완전 삭제
+• 학생 정보도 교사 계정과 함께 즉시 삭제
+• 소셜 로그인 연동 정보도 계정 삭제 시 함께 삭제
+• 별도 백업이나 보관 없음
+
+※ 사용자가 직접 데이터를 백업하고 싶은 경우 
+   내보내기 기능을 이용하세요.
+        `
+      },
+      {
+        id: 'security',
+        title: '개인정보 보호 조치',
+        content: `
+1. 기술적 조치
+   - 데이터 암호화 저장
+   - 안전한 HTTPS 통신
+   - OAuth 2.0 보안 프로토콜 사용 (소셜 로그인)
+   - 접근 권한 관리 (본인만 접근 가능)
+
+2. 관리적 조치
+   - 교사 본인만 자신의 학급 데이터 접근
+   - 타인과 계정 공유 금지
+   - 안전한 비밀번호 사용 권장
+   - 정기적인 보안 업데이트
+        `
+      },
+      {
+        id: 'social_login_notice',
+        title: '소셜 로그인 이용 시 주의사항',
+        content: `
+소셜 로그인(구글, ) 이용 시 유의사항:
+
+1. 소셜 계정 보안 관리
+   - 소셜 계정의 비밀번호를 안전하게 관리하세요
+   - 2단계 인증 설정을 권장합니다
+
+2. 권한 관리
+   - 언제든지 소셜 계정에서 앱 연동을 해제할 수 있습니다
+   - 연동 해제 시 더 이상 로그인이 불가능합니다
+
+3. 계정 통합
+   - 동일한 이메일로 여러 소셜 계정 연동 불가
+   - 계정 변경을 원하는 경우 기존 계정 삭제 후 재가입
+        `
+      },
+      {
+        id: 'contact',
+        title: '개인정보보호 담당자 및 문의처',
+        content: `
+개인정보 처리에 관한 문의사항이 있으시면 아래로 연락주시기 바랍니다:
+
+▶ Amatta 개인정보보호 담당자
+  - 서비스명: Amatta 학급관리시스템
+  - 이메일: Amatta.edu@gmail.com
+  - 처리기간: 접수 후 3일 이내 답변
+
+▶ 문의 유형별 안내
+  - 개인정보 열람/정정/삭제: Amatta.edu@gmail.com
+  - 서비스 이용 문의: Amatta.edu@gmail.com  
+  - 기술적 문제 신고: Amatta.edu@gmail.com
+  - 제휴/협력 문의: Amatta.edu@gmail.com
+
+▶ 개인정보 분쟁조정위원회
+  - 개인정보보호위원회: privacy.go.kr (국번없이 182)
+  - 개인정보 침해신고센터: privacy.or.kr (국번없이 118)
+        `
+      },
+      {
+        id: 'rights',
+        title: '개인정보 주체의 권리',
+        content: `
+교사는 언제든지 다음 권리를 행사할 수 있습니다:
+
+1. 계정 및 데이터 삭제
+   - 설정 > 계정 삭제로 즉시 완전 삭제
+   - 소셜 로그인 연동 정보도 함께 삭제
+
+2. 데이터 내보내기
+   - 삭제 전 필요한 데이터 백업 가능
+
+3. 개인정보 수정
+   - 언제든지 입력한 정보 수정 가능
+
+4. 소셜 로그인 연동 해제
+   - 각 소셜 서비스에서 직접 연동 해제 가능
+
+문의사항이 있으시면 이메일로 연락해 주세요:
+📧 Amatta.edu@gmail.com
+        `
+      }
+    ]
+  }
+};
+
+// 교사 동의 항목
+export const TEACHER_CONSENT_ITEMS = [
+  {
+    id: 'service_terms',
+    title: 'Amatta 서비스 이용약관 동의',
+    description: 'Amatta 학급관리시스템 이용을 위한 기본 약관에 동의합니다.',
+    required: true,
+    details: [
+      '개인 교육 목적으로만 사용',
+      '타인과 계정 공유 금지',
+      '정확한 정보 입력'
+    ]
+  },
+  {
+    id: 'privacy_policy',
+    title: 'Amatta 개인정보 처리방침 동의',
+    description: '개인정보 수집 및 이용에 관한 내용을 확인했습니다.',
+    required: true,
+    details: [
+      '교사 기본정보 수집 (이름, 이메일)',
+      '소셜 로그인 정보 수집 (선택 시)',
+      '학생정보 입력 및 관리 (이름, 번호, 성적, 기록)',
+      '계정 삭제 시 즉시 완전 삭제'
+    ]
+  },
+  {
+    id: 'social_login_consent',
+    title: '소셜 로그인 서비스 이용 동의 (해당시)',
+    description: '구글,  등 소셜 로그인 이용 시 해당 업체와의 정보 제공에 동의합니다.',
+    required: false,
+    details: [
+      '구글/로부터 프로필 정보 제공받기',
+      '소셜 계정 보안 관리 책임',
+      '언제든지 연동 해제 가능'
+    ]
+  },
+  {
+    id: 'data_responsibility',
+    title: '개인정보 보호 책임 확인',
+    description: '입력하는 학생 정보에 대한 책임감을 갖고 안전하게 관리할 것을 약속합니다.',
+    required: true,
+    details: [
+      '학생 정보 보안 관리',
+      '목적 외 사용 금지',
+      '시스템 로그아웃 생활화'
+    ]
+  }
+] as const;
+
+// 서비스 이용약관
+export const SERVICE_TERMS = {
+  title: 'Amatta 서비스 이용약관',
+  content: `
+🏫 Amatta 학급관리시스템 이용약관
+
+1. 서비스 소개
+   - 서비스명: Amatta (아마따)
+   - 제공업체: Amatta 개발팀
+   - 문의처: Amatta.edu@gmail.com
+   - 목적: 개인 교사의 학급 관리 업무 지원
+
+2. 서비스 기능
+   - 학생 출결, 성적, 활동 기록 관리
+   - 일정 관리 및 메모 기능
+   - 학부모 상담 기록 관리
+   - 데이터 내보내기 및 백업
+
+3. 이용자 의무
+   - 정확한 정보 입력
+   - 계정 보안 관리 (비밀번호 보호)
+   - 타인과 계정 공유 금지
+   - 교육 목적 외 사용 금지
+
+4. 서비스 제한
+   - 시스템 안정성을 해치는 행위 금지
+   - 대량의 데이터 무단 수집 금지
+   - 상업적 목적 사용 금지
+   - 타인의 개인정보 무단 수집 금지
+
+5. 데이터 관리
+   - 사용자가 직접 입력한 데이터에 대한 책임
+   - 필요시 백업 데이터 내보내기 권장
+   - 계정 삭제 시 즉시 완전 삭제
+   - Amatta는 사용자 데이터를 별도 보관하지 않음
+
+6. 서비스 중단 및 변경
+   - 시스템 점검 시 사전 공지
+   - 서비스 종료 시 30일 전 공지
+   - 주요 기능 변경 시 사전 안내
+
+7. 책임의 한계
+   - Amatta는 무료 서비스로 제공됨
+   - 데이터 손실에 대한 책임 제한
+   - 사용자의 부주의로 인한 문제 책임 제외
+
+8. 문의 및 지원
+   - 모든 문의: Amatta.edu@gmail.com
+   - 개인정보 관련: Amatta.edu@gmail.com
+   - 기술 지원: Amatta.edu@gmail.com
+   - 답변 기간: 접수 후 3일 이내
+
+이 약관은 2025년 7월 1일부터 시행됩니다.
+`
+};
+
+// 학부모 알림용 정보
+export const PARENT_NOTIFICATION_INFO = {
+  title: 'Amatta 학급관리시스템 개인정보 처리 안내',
+  content: `
+📚 Amatta 학급관리시스템 이용 안내
+
+안녕하세요. 
+담임교사의 효과적인 학급 관리를 위해 Amatta 학급관리시스템을 도입하게 되었습니다.
+
+📋 처리하는 개인정보
+• 학생: 이름, 번호, 성적기록, 상담기록
+• 학부모: 이름, 연락처, 상담내용 (상담 시에만)
+
+🎯 이용 목적
+• 성적 관리 및 학습 지도
+• 개별 학습 상담 및 지도
+• 학부모 상담 일정 관리
+
+⏰ 보관 기간
+• 교사 계정 삭제 시 즉시 완전 삭제
+• 별도 보관이나 백업 없음
+
+🔒 안전한 관리
+• 담임교사만 접근 가능
+• 암호화된 안전한 시스템
+• 교육 목적 외 사용 금지
+
+❓ 문의사항
+개인정보 처리에 대한 문의나 열람·정정·삭제 요청이 있으시면 
+아래 연락처로 문의해 주시기 바랍니다.
+
+📧 Amatta.edu@gmail.com
+---
+🏫 Amatta 학급관리시스템
+   교육을 위한 스마트한 관리 도구
+
+※ 본 안내문은 개인정보보호법에 따른 개인정보 처리 현황 통지입니다.
+  `
+};
+```
+
+### **Step 2: 동의 화면 브랜딩 수정**
+
+**`/components/consent/SimpleConsentModal.tsx` 수정:**
+
+```typescript
+// 기존 코드에서 타이틀 부분만 수정
+
+<DialogTitle className="flex items-center text-xl">
+  <Shield className="w-6 h-6 mr-2 text-blue-600" />
+  Amatta 이용 동의
+  {loginProvider !== 'email' && (
+    <div className="ml-auto flex items-center space-x-1 text-sm font-normal">
+      {getProviderIcon(loginProvider)}
+      <span>{getProviderName(loginProvider)}</span>
+    </div>
+  )}
+</DialogTitle>
+```
+
+### **Step 3: API 에러 메시지 및 문의 안내 수정**
+
+**모든 API 라우트에서 에러 시 문의 안내 추가:**
+
+```typescript
+// 예시: /app/api/consent/check/route.ts
+export async function GET(request: NextRequest) {
+  try {
+    // ... 기존 로직
+  } catch (error) {
+    console.error('동의 상태 확인 오류:', error);
+    return NextResponse.json({ 
+      error: '서버 오류가 발생했습니다. 문제가 지속되면 Amatta.edu@gmail.com으로 문의해 주세요.' 
+    }, { status: 500 });
+  }
+}
+```
+
+### **Step 4: 전역 에러 처리 및 문의 안내**
+
+**`/components/ui/ErrorBoundary.tsx` 생성:**
+
+```typescript
+'use client';
+
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, Mail, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Amatta Error:', error, errorInfo);
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full mx-4">
+            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              
+              <h1 className="text-xl font-bold text-gray-900 mb-2">
+                🏫 Amatta 오류 발생
+              </h1>
+              
+              <p className="text-gray-600 mb-6">
+                예상치 못한 오류가 발생했습니다.
+                페이지를 새로고침하거나 문의해 주세요.
+              </p>
+
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="w-full"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  페이지 새로고침
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.href = 'mailto:Amatta.edu@gmail.com?subject=Amatta 오류 신고'}
+                  className="w-full"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  문의하기
+                </Button>
+              </div>
+
+              <Alert className="mt-4 text-left">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  <strong>문의 시 포함해주세요:</strong><br/>
+                  • 발생 시간: {new Date().toLocaleString()}<br/>
+                  • 브라우저: {navigator.userAgent.split(' ')[0]}<br/>
+                  • 오류: {this.state.error?.message}
+                </AlertDescription>
+              </Alert>
+
+              <div className="mt-4 text-xs text-gray-500">
+                📧 Amatta.edu@gmail.com
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+### **Step 5: 앱 전체에 브랜딩 적용**
+
+**`/app/layout.tsx` 수정:**
+
+```typescript
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+export const metadata: Metadata = {
+  title: 'Amatta - 스마트 학급관리 시스템',
+  description: '교사를 위한 간편하고 안전한 학급관리 도구',
+  keywords: 'Amatta, 학급관리, 교사, 학생관리, 성적관리, 출결관리',
+  authors: [{ name: 'Amatta Team', email: 'Amatta.edu@gmail.com' }],
+  creator: 'Amatta',
+  publisher: 'Amatta',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ko">
+      <body className={inter.className}>
+        <ErrorBoundary>
+          <SessionProvider>
+            <QueryClientProvider client={queryClient}>
+              {children}
+              <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+          </SessionProvider>
+        </ErrorBoundary>
+      </body>
+    </html>
+  );
+}
+```
+
+### **Step 6: 푸터 및 기타 UI 요소에 Amatta 정보 추가**
+
+**`/components/layout/Footer.tsx` 생성:**
+
+```typescript
+import { Mail, Github, Heart } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer className="bg-gray-50 border-t border-gray-200 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center space-x-2 mb-4 md:mb-0">
+            <span className="text-xl font-bold text-blue-600">🏫 Amatta</span>
+            <span className="text-gray-600">|</span>
+            <span className="text-sm text-gray-600">교육을 위한 스마트한 관리 도구</span>
+          </div>
+          
+          <div className="flex items-center space-x-4 text-sm text-gray-600">
+            <a 
+              href="mailto:Amatta.edu@gmail.com"
+              className="flex items-center hover:text-blue-600 transition-colors"
+            >
+              <Mail className="w-4 h-4 mr-1" />
+              문의하기
+            </a>
+            
+            <span className="flex items-center">
+              Made with <Heart className="w-4 h-4 mx-1 text-red-500" /> for Teachers
+            </span>
+          </div>
+        </div>
+        
+        <div className="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
+          <p>© 2024 Amatta. 교사의 업무 효율성을 위해 개발되었습니다.</p>
+          <p className="mt-1">
+            문의 및 지원: 
+            <a href="mailto:Amatta.edu@gmail.com" className="text-blue-600 hover:underline ml-1">
+              Amatta.edu@gmail.com
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+```
+
+### **Step 7: 환경 변수 업데이트**
+
+**`.env.example` 수정:**
+
+```bash
+# Amatta Service Configuration
+NEXT_PUBLIC_APP_NAME="Amatta"
+NEXT_PUBLIC_APP_DESCRIPTION="스마트 학급관리 시스템"
+NEXT_PUBLIC_SUPPORT_EMAIL="Amatta.edu@gmail.com"
+NEXT_PUBLIC_APP_URL="https://amatta.vercel.app"
+
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/amatta_db"
+
+# NextAuth.js
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+
+# OAuth Providers
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+KAKAO_CLIENT_ID="your-kakao-client-id"
+KAKAO_CLIENT_SECRET="your-kakao-client-secret"
+
+# AI Services
+GEMINI_API_KEY="your-gemini-api-key"
+
+# Monitoring
+SENTRY_DSN="your-sentry-dsn"
+NEXT_PUBLIC_SENTRY_DSN="your-public-sentry-dsn"
+
+# Email Configuration (for support)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="Amatta.edu@gmail.com"
+SMTP_PASSWORD="your-app-password"
+```
+
+완료! 이제 **Amatta** 브랜딩과 함께 모든 문의가 `Amatta.edu@gmail.com`으로 통일되었습니다. 🏫✨
+
+**주요 변경사항:**
+- ✅ **서비스명**: "Amatta 학급관리시스템"으로 통일
+- ✅ **문의 이메일**: 모든 곳에서 `Amatta.edu@gmail.com` 사용  
+- ✅ **브랜딩**: 🏫 이모지와 함께 일관된 브랜딩
+- ✅ **에러 처리**: 문제 발생 시 Amatta 문의처 안내
+- ✅ **사용자 경험**: 친근하고 전문적인 교육 서비스 이미지
