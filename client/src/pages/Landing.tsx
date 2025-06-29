@@ -316,6 +316,12 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
     </div>
   );
 }
