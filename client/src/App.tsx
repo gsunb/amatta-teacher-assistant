@@ -30,6 +30,7 @@ import ConsentModal from "@/components/ConsentModal";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   if (isLoading) {
     return <LoadingOverlay message="로딩 중..." />;
@@ -54,6 +55,8 @@ function Router() {
             onConsentComplete={() => {
               // Refresh user data after consent completion
               queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+              // Show onboarding after consent completion
+              setShowOnboarding(true);
             }} 
           />
           <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -71,6 +74,13 @@ function Router() {
             </div>
           </div>
         </>
+      ) : showOnboarding ? (
+        <Onboarding 
+          onComplete={() => {
+            setShowOnboarding(false);
+            queryClient.invalidateQueries({ queryKey: ["/api/classes"] });
+          }} 
+        />
       ) : (
         <>
           <Header />

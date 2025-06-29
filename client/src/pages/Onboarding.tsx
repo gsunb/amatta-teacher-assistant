@@ -35,7 +35,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [studentCount, setStudentCount] = useState("");
 
   // Check if user already has classes
-  const { data: existingClasses = [] } = useQuery({
+  const { data: existingClasses = [] } = useQuery<any[]>({
     queryKey: ["/api/classes"],
   });
 
@@ -131,7 +131,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     onComplete();
   };
 
-  if (existingClasses.length > 0) {
+  if (Array.isArray(existingClasses) && existingClasses.length > 0) {
     // User already has classes, skip onboarding
     onComplete();
     return null;
