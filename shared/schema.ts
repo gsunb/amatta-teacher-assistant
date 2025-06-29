@@ -161,6 +161,16 @@ export const userConsents = pgTable("user_consents", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Password reset tokens table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertScheduleSchema = createInsertSchema(schedules).omit({
   id: true,
@@ -221,6 +231,11 @@ export const insertUserConsentSchema = createInsertSchema(userConsents).omit({
   createdAt: true,
 });
 
+export const insertPasswordResetSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect & {
@@ -245,3 +260,6 @@ export type Backup = typeof backups.$inferSelect;
 export type InsertBackup = z.infer<typeof insertBackupSchema>;
 export type UserConsent = typeof userConsents.$inferSelect;
 export type InsertUserConsent = z.infer<typeof insertUserConsentSchema>;
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetSchema>;

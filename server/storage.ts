@@ -100,6 +100,12 @@ export interface IStorage {
   createUserConsent(userId: string, consent: InsertUserConsent): Promise<UserConsent>;
   updateUserConsent(userId: string, consentType: string, isConsented: boolean): Promise<void>;
   hasRequiredConsents(userId: string): Promise<boolean>;
+
+  // Password reset operations
+  createPasswordResetToken(userId: string, token: string): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markTokenAsUsed(token: string): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
