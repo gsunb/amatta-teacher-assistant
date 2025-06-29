@@ -390,16 +390,16 @@ export default function Assessments() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">단원 필터</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">시험명 필터</label>
             <Select value={filterExam} onValueChange={setFilterExam}>
               <SelectTrigger>
-                <SelectValue placeholder="전체 단원" />
+                <SelectValue placeholder="전체 시험" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">전체 단원</SelectItem>
-                {uniqueUnits.map((unit) => (
-                  <SelectItem key={unit} value={unit}>
-                    {unit}
+                <SelectItem value="all">전체 시험</SelectItem>
+                {uniqueExamNames.map((examName) => (
+                  <SelectItem key={examName} value={examName}>
+                    {examName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -438,20 +438,20 @@ export default function Assessments() {
         </div>
       </div>
 
-      {/* Task-by-Task Comparison View */}
+      {/* Exam-by-Exam Comparison View */}
       {viewMode === 'by-task' && assessments.length > 0 && (
         <div className="mb-8 space-y-6">
-          {Object.entries(taskGroups).map(([taskKey, taskAssessments]) => {
-            const sortedAssessments = taskAssessments
+          {Object.entries(examGroups).map(([examKey, examAssessments]) => {
+            const sortedAssessments = examAssessments
               .filter(a => a.score !== null && a.maxScore !== null)
               .sort((a, b) => ((b.score! / b.maxScore!) - (a.score! / a.maxScore!)) * 100);
 
             if (sortedAssessments.length === 0) return null;
 
             return (
-              <Card key={taskKey}>
+              <Card key={examKey}>
                 <CardHeader>
-                  <CardTitle className="text-lg">{taskKey}</CardTitle>
+                  <CardTitle className="text-lg">{examKey}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -673,9 +673,9 @@ export default function Assessments() {
                 <Textarea
                   value={uploadText}
                   onChange={(e) => setUploadText(e.target.value)}
-                  placeholder="수학, 2차 함수, 중간고사, 김철수, 85, 100
-국어, 문학, 수행평가, 이영희, 92, 100
-영어, 독해, 단어시험, 박민수, 78, 100"
+                  placeholder="수학, 2차 함수 중간고사, 김철수, 85, 100
+국어, 문학 수행평가, 이영희, 92, 100
+영어, 독해 단어시험, 박민수, 78, 100"
                   rows={8}
                 />
               </div>
@@ -721,7 +721,7 @@ export default function Assessments() {
                         {assessment.subject}
                       </h3>
                       <p className="text-sm text-gray-600 mb-1">
-                        {assessment.unit} - {assessment.task}
+                        {assessment.examName}
                       </p>
                       {assessment.studentName && (
                         <p className="text-sm text-gray-500">

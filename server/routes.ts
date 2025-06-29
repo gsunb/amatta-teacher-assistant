@@ -994,8 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             case 'assessment':
               const assessment = await storage.createAssessment(userId, {
                 subject: action.data.subject,
-                unit: action.data.unit,
-                task: action.data.task,
+                examName: action.data.examName || `${action.data.unit || ''} ${action.data.task || ''}`.trim(),
                 studentName: action.data.studentName || undefined,
                 score: action.data.score || undefined,
                 maxScore: action.data.maxScore || undefined,
