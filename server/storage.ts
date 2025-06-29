@@ -490,20 +490,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUserConsent(userId: string, consent: InsertUserConsent): Promise<UserConsent> {
-    const [userConsent] = await db
-      .insert(userConsents)
-      .values({ ...consent, userId })
-      .onConflictDoUpdate({
-        target: [userConsents.userId, userConsents.consentType],
-        set: {
+    // First try to find existing consent
+    const existingConsent = await db
+      .select()
+      .from(userConsents)
+      .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType)))
+      .limit(1);
+
+    if (existingConsent.length > 0) {
+      // Update existing consent
+      const [updatedConsent] = await db
+        .update(userConsents)
+        .set({
           isConsented: consent.isConsented,
-          consentVersion: consent.consentVersion,
+          consentVersion: consent.consentVersion || "1.0",
           consentedAt: consent.consentedAt,
           withdrawnAt: consent.withdrawnAt,
-        },
-      })
-      .returning();
-    return userConsent;
+        })
+        .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType)))
+        .returning();
+      return updatedConsent;
+    } else {
+      // Create new consent
+      const [newConsent] = await db
+        .insert(userConsents)
+        .values({ ...consent, userId })
+        .returning();
+      return newConsent;
+    }
   }
 
   async updateUserConsent(userId: string, consentType: string, isConsented: boolean): Promise<void> {

@@ -24,9 +24,19 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
     setCheckedItems(prev => ({ ...prev, [itemId]: checked }));
   };
 
+  const handleSelectAll = () => {
+    const allSelected: Record<string, boolean> = {};
+    TEACHER_CONSENT_ITEMS.forEach(item => {
+      allSelected[item.id] = true;
+    });
+    setCheckedItems(allSelected);
+  };
+
   const allRequiredChecked = TEACHER_CONSENT_ITEMS
     .filter(item => item.required)
     .every(item => checkedItems[item.id]);
+
+  const allItemsChecked = TEACHER_CONSENT_ITEMS.every(item => checkedItems[item.id]);
 
   const submitConsentMutation = useMutation({
     mutationFn: async () => {
@@ -126,10 +136,22 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
 
             {/* Consent Items */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center">
-                <UserCheck className="h-5 w-5 text-purple-600 mr-2" />
-                동의 항목
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <UserCheck className="h-5 w-5 text-purple-600 mr-2" />
+                  동의 항목
+                </h3>
+                <Button
+                  type="button"
+                  variant={allItemsChecked ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  전체 동의
+                </Button>
+              </div>
               
               {TEACHER_CONSENT_ITEMS.map((item) => (
                 <Card key={item.id} className={`border transition-colors ${
