@@ -93,14 +93,17 @@ export default function Sidebar() {
             <div className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  {user?.firstName ? user.firstName.charAt(0) : user?.email?.charAt(0).toUpperCase() || '👩‍🏫'}
+                  {user && 'firstName' in user && user.firstName ? user.firstName.charAt(0) : 
+                   user && 'email' in user && user.email ? user.email.charAt(0).toUpperCase() : '👩‍🏫'}
                 </span>
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">
-                  {user?.firstName && user?.lastName 
+                  {user && 'firstName' in user && 'lastName' in user && user.firstName && user.lastName 
                     ? `${user.firstName} ${user.lastName}` 
-                    : user?.firstName || user?.email?.split('@')[0] || '선생님'}
+                    : user && 'firstName' in user && user.firstName ? user.firstName
+                    : user && 'email' in user && user.email ? user.email.split('@')[0]
+                    : '선생님'}
                 </p>
                 <p className="text-xs text-gray-500">Amatta 사용자</p>
               </div>
