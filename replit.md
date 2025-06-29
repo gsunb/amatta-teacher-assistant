@@ -191,6 +191,7 @@ Amatta is a Progressive Web Application (PWA) designed as a comprehensive AI ass
 - June 29, 2025. Smart onboarding system: automatically detects existing classes and skips onboarding for returning users, improved class list display format to show "학년반" structure correctly
 - June 29, 2025. Vercel deployment preparation: created deployment configuration files, environment variable templates, Google OAuth redirect URI setup guide, and comprehensive deployment documentation to resolve redirect_uri_mismatch issues
 - June 29, 2025. Fixed Vercel 404 NOT_FOUND errors: resolved deployment configuration conflicts, created optimized build scripts (vercel-build.sh), implemented proper static file serving setup, and streamlined functions-based deployment approach
+- June 29, 2025. Resolved Vercel raw JavaScript display issue: updated serverless function to serve proper HTML instead of built JavaScript code, implemented clean landing page with Korean UI for production deployment
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
