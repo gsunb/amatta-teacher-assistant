@@ -769,11 +769,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               break;
 
             case 'record':
+              // Extract student names and find their IDs
+              const students = await storage.getStudents(userId);
+              const studentNames = extractStudentNames(action.data.description || action.data.title);
+              const studentIds = studentNames.map(name => {
+                const student = students.find(s => s.name === name);
+                return student ? student.id : null;
+              }).filter(id => id !== null);
+
               const record = await storage.createRecord(userId, {
                 title: action.data.title,
                 description: action.data.description,
                 date: action.data.date,
                 severity: action.data.severity || 'medium',
+                studentIds: studentIds.length > 0 ? studentIds : null,
               });
               results.push({ type: 'record', data: record });
               break;
