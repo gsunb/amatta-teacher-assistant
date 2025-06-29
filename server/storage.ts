@@ -490,33 +490,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUserConsent(userId: string, consent: InsertUserConsent): Promise<UserConsent> {
-    // First try to find existing consent
-    const existingConsent = await db
-      .select()
-      .from(userConsents)
-      .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType)))
-      .limit(1);
+    try {
+      console.log("Creating/updating consent for user:", userId, "type:", consent.consentType);
+      
+      // Use a simple insert approach with proper error handling
+      const consentData = {
+        userId,
+        consentType: consent.consentType,
+        consentVersion: consent.consentVersion || "1.0",
+        isConsented: consent.isConsented,
+        consentedAt: consent.consentedAt,
+        withdrawnAt: consent.withdrawnAt,
+      };
 
-    if (existingConsent.length > 0) {
-      // Update existing consent
-      const [updatedConsent] = await db
-        .update(userConsents)
-        .set({
-          isConsented: consent.isConsented,
-          consentVersion: consent.consentVersion || "1.0",
-          consentedAt: consent.consentedAt,
-          withdrawnAt: consent.withdrawnAt,
-        })
-        .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType)))
-        .returning();
-      return updatedConsent;
-    } else {
-      // Create new consent
-      const [newConsent] = await db
-        .insert(userConsents)
-        .values({ ...consent, userId })
-        .returning();
-      return newConsent;
+      // Try to insert first
+      try {
+        const [newConsent] = await db
+          .insert(userConsents)
+          .values(consentData)
+          .returning();
+        console.log("Created new consent:", newConsent.id);
+        return newConsent;
+      } catch (insertError) {
+        // If insert fails due to duplicate, try update
+        console.log("Insert failed, trying update for:", consent.consentType);
+        
+        const [updatedConsent] = await db
+          .update(userConsents)
+          .set({
+            isConsented: consent.isConsented,
+            consentVersion: consent.consentVersion || "1.0",
+            consentedAt: consent.consentedAt,
+            withdrawnAt: consent.withdrawnAt,
+          })
+          .where(and(eq(userConsents.userId, userId), eq(userConsents.consentType, consent.consentType)))
+          .returning();
+        
+        if (!updatedConsent) {
+          throw new Error(`Failed to update consent for ${consent.consentType}`);
+        }
+        
+        console.log("Updated existing consent:", updatedConsent.id);
+        return updatedConsent;
+      }
+    } catch (error) {
+      console.error("Error in createUserConsent:", error);
+      throw new Error(`Failed to process consent ${consent.consentType}: ${error}`);
     }
   }
 

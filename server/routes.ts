@@ -352,27 +352,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { consents } = req.body;
 
-      console.log("Processing consents for user:", userId);
-      console.log("Consent data:", consents);
-
-      // Create or update consents using upsert pattern
-      for (const consent of consents) {
-        console.log("Processing consent:", consent.consentType, "=", consent.isConsented);
-        
-        // Use INSERT ... ON CONFLICT DO UPDATE pattern
-        await storage.createUserConsent(userId, {
-          consentType: consent.consentType,
-          consentVersion: "1.0",
-          isConsented: consent.isConsented,
-          consentedAt: consent.isConsented ? new Date() : null,
-          withdrawnAt: !consent.isConsented ? new Date() : null,
-        });
+      if (!consents || !Array.isArray(consents)) {
+        return res.status(400).json({ message: "Invalid consent data" });
       }
 
-      res.json({ message: "Consents updated successfully" });
+      console.log("Processing consents for user:", userId);
+      console.log("Number of consents:", consents.length);
+
+      const results = [];
+      for (const consent of consents) {
+        try {
+          console.log("Processing:", consent.consentType, "->", consent.isConsented);
+          
+          const result = await storage.createUserConsent(userId, {
+            consentType: consent.consentType,
+            consentVersion: "1.0",
+            isConsented: consent.isConsented,
+            consentedAt: consent.isConsented ? new Date() : null,
+            withdrawnAt: !consent.isConsented ? new Date() : null,
+          });
+          
+          results.push(result);
+          console.log("Success for:", consent.consentType);
+        } catch (consentError) {
+          console.error("Error processing consent:", consent.consentType, consentError);
+          throw consentError;
+        }
+      }
+
+      console.log("All consents processed successfully");
+      res.json({ 
+        message: "Consents updated successfully",
+        processed: results.length
+      });
     } catch (error) {
-      console.error("Error updating consents:", error);
-      res.status(500).json({ message: "Failed to update consents", error: String(error) });
+      console.error("Error in consent processing:", error);
+      res.status(500).json({ 
+        message: "Failed to update consents", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

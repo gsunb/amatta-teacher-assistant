@@ -45,9 +45,19 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
         isConsented: checkedItems[item.id] || false
       }));
       
-      return await apiRequest('/api/user/consents', 'POST', { consents });
+      console.log("Submitting consents:", consents);
+      
+      try {
+        const response = await apiRequest('/api/user/consents', 'POST', { consents });
+        console.log("Consent response:", response);
+        return response;
+      } catch (error) {
+        console.error("Consent submission error:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Consent submission successful:", data);
       toast({
         title: "동의 완료",
         description: "Amatta 서비스를 이용하실 수 있습니다.",
@@ -55,9 +65,10 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
       onConsentComplete();
     },
     onError: (error: Error) => {
+      console.error("Consent mutation error:", error);
       toast({
         title: "오류 발생",
-        description: "동의 처리 중 문제가 발생했습니다. 다시 시도해 주세요.",
+        description: `동의 처리 실패: ${error.message}`,
         variant: "destructive",
       });
     },
