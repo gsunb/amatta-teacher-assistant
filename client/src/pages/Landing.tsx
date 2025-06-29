@@ -242,34 +242,34 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-indigo-50 to-indigo-100">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-red-50 to-orange-100">
               <CardContent className="p-8">
-                <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <BarChart className="h-7 w-7 text-white" />
+                <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <FileText className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">지능형 성과 분석</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">누가기록</h3>
                 <p className="text-gray-600 mb-4">
-                  학생별 성취도를 자동 분석하고 맞춤형 학습 가이드를 제공하여 개별 학습 관리를 지원합니다.
+                  "김철수가 수업 중 장난을 쳤다" → 자동으로 생활기록 저장<br/>
+                  "이영희가 친구와 다투었음" → 상담 필요 학생으로 분류
                 </p>
-                <div className="flex items-center text-indigo-600 font-semibold">
-                  <span className="text-2xl mr-2">87%</span>
-                  <span className="text-sm">정확도 향상</span>
+                <div className="bg-red-100 p-3 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium">예시: 학급 내 사건, 행동 관찰을 즉시 기록</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-purple-100">
+            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-emerald-100">
               <CardContent className="p-8">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Users className="h-7 w-7 text-white" />
+                <div className="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <BarChart className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">원활한 소통 관리</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">평가 관리</h3>
                 <p className="text-gray-600 mb-4">
-                  학부모와의 소통 기록을 체계적으로 관리하고, 상담 일정 자동 알림으로 놓치는 일이 없습니다.
+                  Excel 파일로 성적 업로드하면 자동 분석<br/>
+                  "수학 중간고사 결과가 나왔어" → 성적 트렌드 파악
                 </p>
-                <div className="flex items-center text-purple-600 font-semibold">
-                  <span className="text-2xl mr-2">78%</span>
-                  <span className="text-sm">만족도 증가</span>
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">예시: 시험 성적, 과제 점수를 간편하게 관리</p>
                 </div>
               </CardContent>
             </Card>

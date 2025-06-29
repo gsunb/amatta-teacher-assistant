@@ -172,6 +172,8 @@ Amatta is a Progressive Web Application (PWA) designed as a comprehensive AI ass
 ## Changelog
 - June 28, 2025. Initial setup
 - June 28, 2025. Removed attendance functionality completely from application for future development
+- June 29, 2025. Modernized dashboard with floating cards, gradients, and improved visual hierarchy
+- June 29, 2025. Updated landing page with natural language focus and concrete feature examples
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
