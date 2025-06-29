@@ -27,9 +27,9 @@ git push -u origin main
 3. 프로젝트 설정:
    - **Project Name**: `amatta-teacher-assistant`
    - **Framework Preset**: `Other`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: 비워두기
-   - **Install Command**: `npm install`
+   - **Build Command**: `npm run build` (자동 감지됨)
+   - **Output Directory**: 비워두기 (vercel.json에서 관리)
+   - **Install Command**: `npm ci` (자동 감지됨)
 
 ## 3. 환경 변수 설정 (3분)
 

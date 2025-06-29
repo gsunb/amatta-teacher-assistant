@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "client/dist/**",
-      "use": "@vercel/static"
-    },
-    {
       "src": "server/index.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["server/**", "shared/**"]
+        "includeFiles": ["server/**", "shared/**", "package.json"]
       }
+    },
+    {
+      "src": "client/dist/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -23,11 +23,6 @@
       "dest": "/client/dist/$1"
     }
   ],
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30
-    }
-  },
   "installCommand": "npm ci",
   "buildCommand": "npm run build"
 }

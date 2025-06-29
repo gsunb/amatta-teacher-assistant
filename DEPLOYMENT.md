@@ -1,109 +1,89 @@
-# Vercel 배포 가이드
+# Amatta 배포 가이드
 
-## 1. GitHub 레포지토리 생성
+## 🚀 Vercel 빠른 배포 (8분 완성)
 
-1. GitHub에서 새 레포지토리를 생성합니다
-2. 프로젝트 파일들을 업로드합니다:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/yourusername/amatta-teacher-assistant.git
-   git push -u origin main
-   ```
+### 1. GitHub 업로드 (2분)
+```bash
+# 프로젝트 루트에서 실행
+git init
+git add .
+git commit -m "Amatta Teacher Assistant - Ready for deployment"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/amatta-teacher-assistant.git
+git push -u origin main
+```
 
-## 2. Vercel 배포 설정
-
-### 2.1 Vercel 프로젝트 생성
-1. [Vercel Dashboard](https://vercel.com/dashboard)에 로그인
+### 2. Vercel 프로젝트 생성 (2분)
+1. [vercel.com](https://vercel.com) 접속 후 로그인
 2. "New Project" 클릭
-3. GitHub 레포지토리를 import
-4. Build & Development Settings:
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `client/dist` 
-   - **Install Command**: `npm install`
+3. GitHub 레포지토리 `amatta-teacher-assistant` 선택
+4. "Deploy" 클릭 (설정은 자동으로 감지됨)
 
-### 2.2 환경 변수 설정
-Vercel Dashboard의 Project Settings > Environment Variables에서 다음 변수들을 추가:
+### 3. 환경 변수 설정 (3분)
+Vercel Dashboard → Settings → Environment Variables 에서 추가:
 
 ```
-DATABASE_URL=postgresql://username:password@host:port/database
-SESSION_SECRET=your-very-long-random-session-secret-here
+DATABASE_URL=postgresql://username:password@hostname:port/database
+SESSION_SECRET=your-32-character-random-string
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-GEMINI_API_KEY=your-gemini-api-key
 NODE_ENV=production
+GEMINI_API_KEY=your-gemini-api-key (선택사항)
 ```
 
-## 3. 데이터베이스 설정 (Neon)
+### 4. Google OAuth 설정 (1분)
+[Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials
 
-1. [Neon Console](https://console.neon.tech/)에서 새 프로젝트 생성
-2. Connection String을 복사하여 `DATABASE_URL`에 설정
-3. 배포 후 데이터베이스 스키마 적용:
-   ```bash
-   npm run db:push
-   ```
-
-## 4. Google OAuth 설정
-
-### 4.1 Google Cloud Console 설정
-1. [Google Cloud Console](https://console.cloud.google.com/)에 접속
-2. 프로젝트 선택 또는 새 프로젝트 생성
-3. APIs & Services > Credentials로 이동
-4. OAuth 2.0 Client IDs에서 기존 클라이언트 편집 또는 새로 생성
-
-### 4.2 Redirect URIs 설정
-**승인된 리디렉션 URI**에 다음 URL들을 추가:
-
+**승인된 리디렉션 URI에 추가:**
 ```
-https://your-app-name.vercel.app/api/auth/google/callback
-https://your-app-name-git-main-yourusername.vercel.app/api/auth/google/callback
+https://your-project-name.vercel.app/api/auth/google/callback
 ```
 
-### 4.3 승인된 JavaScript 원본
-```
-https://your-app-name.vercel.app
-https://your-app-name-git-main-yourusername.vercel.app
-```
+## ✅ 배포 완료 확인
 
-## 5. 배포 후 확인사항
+### 테스트 체크리스트
+- [ ] 사이트 로딩: `https://your-project-name.vercel.app`
+- [ ] 이메일 로그인/회원가입 동작
+- [ ] Google OAuth 로그인 동작
+- [ ] 자연어 명령 입력 및 처리
+- [ ] 학급 생성 및 관리
+- [ ] 학생 데이터 입력
 
-### 5.1 기본 기능 테스트
-- [ ] 랜딩 페이지 로드 확인
-- [ ] 이메일 로그인/회원가입 테스트
-- [ ] Google OAuth 로그인 테스트
-- [ ] 데이터베이스 연결 확인
+### 문제 해결
+**로그인 오류**: Vercel Functions 탭에서 에러 로그 확인
+**데이터베이스 오류**: DATABASE_URL 환경변수 재확인
+**OAuth 오류**: Google Console에서 정확한 도메인 설정 확인
 
-### 5.2 환경별 URL 확인
-- **Production**: `https://your-app-name.vercel.app`
-- **Preview**: `https://your-app-name-git-branch-yourusername.vercel.app`
+## 🎯 주요 기능
 
-## 6. 도메인 설정 (선택사항)
+### 자연어 명령 예시
+- "내일 오후 2시에 학부모 상담 일정 추가"
+- "김철수 학생 수학 성적 85점 기록"
+- "6학년 1반 체육대회 준비 회의 일정"
 
-### 6.1 커스텀 도메인 연결
-1. Vercel Dashboard > Project Settings > Domains
-2. 도메인을 추가하고 DNS 설정
+### 관리 기능
+- 📅 일정 관리
+- 👥 학생 정보 관리
+- 📝 사건 기록
+- 📊 성과 평가
+- 💬 학부모 소통
+- 📈 보고서 생성
 
-### 6.2 Google OAuth에 커스텀 도메인 추가
-커스텀 도메인 사용 시 Google Cloud Console에서 추가:
-```
-https://yourdomain.com/api/auth/google/callback
-```
+## 🔒 보안 설정
 
-## 7. 문제 해결
+### 필수 보안 체크
+- [ ] 모든 환경변수가 Vercel에만 저장됨
+- [ ] SESSION_SECRET이 32자 이상
+- [ ] 데이터베이스가 SSL 연결 사용
+- [ ] Google OAuth 키가 안전하게 관리됨
 
-### 7.1 일반적인 오류들
-- **redirect_uri_mismatch**: Google Cloud Console에서 정확한 URL 설정 확인
-- **Database connection error**: DATABASE_URL 환경변수 확인
-- **Session errors**: SESSION_SECRET 설정 확인
+### 프로덕션 권장사항
+- 정기적인 데이터베이스 백업
+- 환경변수 주기적 업데이트
+- 로그 모니터링 활성화
 
-### 7.2 로그 확인
-Vercel Dashboard > Project > Functions 탭에서 서버 로그 확인
+---
 
-## 8. 보안 고려사항
-
-- SESSION_SECRET은 최소 32자의 랜덤 문자열 사용
-- 환경 변수는 절대 코드에 하드코딩하지 않기
-- Google OAuth 클라이언트 시크릿은 안전하게 보관
-- 정기적으로 API 키 갱신
+**총 배포 시간**: 약 8분
+**해결되는 문제**: redirect_uri_mismatch 완전 해결
+**결과**: 안정적인 프로덕션 환경에서 Amatta 사용 가능
