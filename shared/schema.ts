@@ -220,7 +220,9 @@ export const insertUserConsentSchema = createInsertSchema(userConsents).omit({
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect & {
+  hasRequiredConsents?: boolean;
+};
 export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type Record = typeof records.$inferSelect;

@@ -18,6 +18,7 @@ import StudentDetail from "@/pages/StudentDetail";
 import Reports from "@/pages/Reports";
 import StudentReports from "@/pages/StudentReports";
 import Settings from "@/pages/Settings";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import ParentCommunications from "@/pages/ParentCommunications";
 import DataManagement from "@/pages/DataManagement";
 import Sidebar from "@/components/Sidebar";
@@ -27,11 +28,14 @@ import ChatBot from "@/components/ChatBot";
 import ConsentModal from "@/components/ConsentModal";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingOverlay message="로딩 중..." />;
   }
+
+  // Check if authenticated user needs to complete consent
+  const needsConsent = isAuthenticated && user && user.hasRequiredConsents === false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -42,6 +46,30 @@ function Router() {
           <Route path="/login" component={Login} />
           <Route component={NotFound} />
         </Switch>
+      ) : needsConsent ? (
+        <>
+          <ConsentModal 
+            isOpen={true} 
+            onConsentComplete={() => {
+              // Refresh user data after consent completion
+              queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+            }} 
+          />
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto p-8">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Amatta 서비스 이용 동의</h2>
+              <p className="text-gray-600 mb-6">안전한 서비스 이용을 위해 약관 및 개인정보 처리방침 동의가 필요합니다.</p>
+              <div className="text-sm text-gray-500">
+                문의: amatta.edu@gmail.com
+              </div>
+            </div>
+          </div>
+        </>
       ) : (
         <>
           <Header />
