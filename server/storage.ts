@@ -36,7 +36,9 @@ import { eq, and, desc, asc, gte, lte, inArray, sql } from "drizzle-orm";
 export interface IStorage {
   // User operations - mandatory for Replit Auth
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  createEmailUser(userData: { email: string; password: string; firstName?: string; lastName?: string }): Promise<User>;
 
   // Schedule operations
   getSchedules(userId: string): Promise<Schedule[]>;
@@ -107,6 +109,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -117,6 +124,24 @@ export class DatabaseStorage implements IStorage {
           ...userData,
           updatedAt: new Date(),
         },
+      })
+      .returning();
+    return user;
+  }
+
+  async createEmailUser(userData: { email: string; password: string; firstName?: string; lastName?: string }): Promise<User> {
+    const userId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: userId,
+        email: userData.email,
+        password: userData.password,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        authProvider: "email",
+        emailVerified: false,
       })
       .returning();
     return user;

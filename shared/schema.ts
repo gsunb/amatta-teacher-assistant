@@ -26,13 +26,16 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table - mandatory for Replit Auth
+// User storage table - supports both OAuth and email/password auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
+  password: varchar("password"), // For email/password auth, null for OAuth users
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  authProvider: varchar("auth_provider").default("email"), // "replit", "google", "email"
+  emailVerified: boolean("email_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
