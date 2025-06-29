@@ -1,9 +1,15 @@
 // Amatta main serverless function
 module.exports = (req, res) => {
-  // Always set HTML content type first
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('X-Powered-By', 'Amatta Teacher Assistant');
+  // Prevent any JavaScript execution or caching
+  res.writeHead(200, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-Powered-By': 'Amatta Teacher Assistant'
+  });
 
   // Serve the main application HTML
   const html = `<!DOCTYPE html>
@@ -179,5 +185,5 @@ module.exports = (req, res) => {
 </body>
 </html>`;
 
-  res.status(200).send(html);
+  res.end(html);
 };
