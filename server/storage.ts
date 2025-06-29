@@ -9,8 +9,11 @@ import {
   notifications,
   backups,
   userConsents,
+  passwordResetTokens,
   type User,
   type UpsertUser,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
   type Schedule,
   type InsertSchedule,
   type Record,
@@ -602,6 +605,45 @@ export class DatabaseStorage implements IStorage {
       );
     
     return consents.length >= requiredConsentTypes.length;
+  }
+
+  // Password reset operations
+  async createPasswordResetToken(userId: string, token: string): Promise<PasswordResetToken> {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+
+    const [resetToken] = await db
+      .insert(passwordResetTokens)
+      .values({
+        userId,
+        token,
+        expiresAt,
+      })
+      .returning();
+    return resetToken;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+    return resetToken;
+  }
+
+  async markTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
   }
 }
 

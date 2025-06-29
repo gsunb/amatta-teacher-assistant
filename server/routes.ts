@@ -322,6 +322,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email/Password Registration
+  // Password reset request endpoint
+  app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: "이메일을 입력해주세요." });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.password) {
+        // Don't reveal if email exists for security
+        return res.json({ message: "비밀번호 재설정 이메일이 발송되었습니다. (등록된 이메일인 경우)" });
+      }
+
+      // Generate reset token
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      // Store reset token
+      await storage.createPasswordResetToken(user.id, token);
+
+      // In a real app, you would send an email here
+      // For now, we'll return the reset link in the response
+      const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${token}`;
+      
+      res.json({ 
+        message: "비밀번호 재설정 링크가 생성되었습니다.",
+        resetLink: resetLink, // Remove this in production - should only be sent via email
+        debug: true // Remove this in production
+      });
+
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      res.status(500).json({ message: "비밀번호 재설정 요청 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Password reset endpoint
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "토큰과 새 비밀번호를 입력해주세요." });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "비밀번호는 최소 6자 이상이어야 합니다." });
+      }
+
+      // Get reset token
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken || resetToken.used || new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ message: "유효하지 않거나 만료된 토큰입니다." });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user password
+      await storage.updateUserPassword(resetToken.userId, hashedPassword);
+
+      // Mark token as used
+      await storage.markTokenAsUsed(token);
+
+      res.json({ message: "비밀번호가 성공적으로 변경되었습니다." });
+
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "비밀번호 변경 중 오류가 발생했습니다." });
+    }
+  });
+
   app.post('/api/auth/register', async (req, res) => {
     try {
       const { email, password, confirmPassword, firstName, lastName } = req.body;
