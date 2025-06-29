@@ -34,9 +34,16 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">Amatta</h1>
-              <p className="text-xs text-gray-500 -mt-1">선생님의 AI 도우미</p>
+            <Link href="/" className="flex items-center space-x-3 flex-shrink-0">
+              <img 
+                src="/attached_assets/image_1751162071875.png" 
+                alt="Amatta 로고" 
+                className="h-10 w-auto"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">Amatta</h1>
+                <p className="text-xs text-gray-500 -mt-1">선생님의 AI 도우미</p>
+              </div>
             </Link>
           </div>
 

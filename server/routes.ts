@@ -170,25 +170,30 @@ async function parseCommandBasic(command: string, userId: string) {
     results.push({ type: 'schedule', data: schedule });
   }
   else if (lowerCommand.includes('기록') || lowerCommand.includes('사건') || lowerCommand.includes('문제') || lowerCommand.includes('생활지도')) {
-    const title = command.length > 20 ? command.substring(0, 20) + '...' : command;
+    // Split command into multiple events if they contain separators
+    const events = splitMultipleEvents(command);
     const today = new Date().toISOString().split('T')[0];
-    
-    // Extract student names and IDs for multi-student records
-    const studentNames = extractStudentNames(command);
     const students = await storage.getStudents(userId);
-    const studentIds = studentNames.map(name => {
-      const student = students.find(s => s.name === name);
-      return student ? student.id : null;
-    }).filter(id => id !== null);
     
-    const record = await storage.createRecord(userId, {
-      title,
-      description: command,
-      date: today,
-      severity: determineSeverity(command) as "low" | "medium" | "high",
-      studentIds: studentIds.length > 0 ? studentIds : null
-    });
-    results.push({ type: 'record', data: record });
+    for (const event of events) {
+      const title = event.length > 20 ? event.substring(0, 20) + '...' : event;
+      
+      // Extract student names for each individual event
+      const studentNames = extractStudentNames(event);
+      const studentIds = studentNames.map(name => {
+        const student = students.find(s => s.name === name);
+        return student ? student.id : null;
+      }).filter(id => id !== null);
+      
+      const record = await storage.createRecord(userId, {
+        title,
+        description: event.trim(),
+        date: today,
+        severity: determineSeverity(event) as "low" | "medium" | "high",
+        studentIds: studentIds.length > 0 ? studentIds : null
+      });
+      results.push({ type: 'record', data: record });
+    }
   }
   
   return results;
@@ -221,6 +226,52 @@ function extractStudentNames(text: string): string[] {
   const standalonePattern = /([가-힣]{2,3})/g;
   const standaloneMatches = text.match(standalonePattern);
   return standaloneMatches ? Array.from(new Set(standaloneMatches)) : [];
+}
+
+function splitMultipleEvents(text: string): string[] {
+  // Split on common Korean separators and conjunctions
+  const separators = [
+    /\s*그리고\s*/g,
+    /\s*또한\s*/g, 
+    /\s*그리고나서\s*/g,
+    /\s*,\s*또\s*/g,
+    /\s*\.[\s]*[가-힣]/g, // Sentence endings followed by Korean text
+    /\s*;\s*/g,
+    /\s*\.\s*그리고\s*/g,
+    /\s*\.\s*또\s*/g,
+    /\s*하고\s*/g,
+    /\s*그다음\s*/g
+  ];
+  
+  let events = [text];
+  
+  // Apply each separator pattern
+  for (const separator of separators) {
+    const newEvents = [];
+    for (const event of events) {
+      if (separator.source.includes('[가-힣]')) {
+        // Special handling for sentence endings
+        const parts = event.split(/\.\s*(?=[가-힣])/);
+        newEvents.push(...parts);
+      } else {
+        const parts = event.split(separator);
+        newEvents.push(...parts);
+      }
+    }
+    events = newEvents;
+  }
+  
+  // Clean up and filter out empty events
+  return events
+    .map(event => event.trim())
+    .filter(event => event.length > 3) // Filter out very short fragments
+    .map(event => {
+      // Add proper ending if it looks incomplete
+      if (!event.match(/[.!?]$/)) {
+        event += '.';
+      }
+      return event;
+    });
 }
 
 function determineSeverity(text: string): "low" | "medium" | "high" {
