@@ -77,43 +77,38 @@ export default function Landing() {
             </Badge>
             
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              교실 업무를 
+              "아, 맞다!" 
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                자연어로 해결
+                깜빡해도 괜찮아요
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              <span className="font-semibold text-blue-600">"김철수가 장난을 쳤다"</span> → 자동으로 생활기록 저장<br/>
-              <span className="font-semibold text-green-600">"내일 2교시에 수학 수업"</span> → 일정 자동 등록<br/>
-              복잡한 클릭 없이, 말하는 것처럼 간단하게
+            <p className="text-2xl md:text-3xl text-gray-700 mb-6 max-w-3xl mx-auto font-medium">
+              정신없는 학교 생활, 자연어로 기록해요
             </p>
             
+            <div className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto space-y-3">
+              <p><span className="font-semibold text-blue-600">"김철수가 장난을 쳤다"</span> → 자동으로 생활기록 저장</p>
+              <p><span className="font-semibold text-green-600">"내일 2교시에 수학 수업"</span> → 일정 자동 등록</p>
+              <p className="font-medium text-gray-700">복잡한 클릭 없이, 말하는 것처럼 간단하게</p>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Link href="/signup">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-                >
-                  무료 체험 시작
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 px-8 py-4 text-lg font-medium rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center"
-                >
-                  로그인
-                </Button>
-              </Link>
               <Button
-                variant="outline"
+                onClick={() => window.location.href = "/api/login"}
                 size="lg"
-                className="border-2 border-gray-300 hover:border-gray-400 px-8 py-4 text-lg font-medium rounded-xl transition-all"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
               >
-                데모 보기
+                시작하기
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                onClick={() => window.location.href = "/api/login"}
+                size="lg"
+                variant="outline"
+                className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 px-8 py-4 text-lg font-medium rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center"
+              >
+                로그인
               </Button>
             </div>
 
@@ -236,13 +231,13 @@ export default function Landing() {
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Calendar className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">스마트 일정 관리</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">일정 관리</h3>
                 <p className="text-gray-600 mb-4">
-                  자연어 입력으로 쉽게 일정을 등록하고, AI가 자동으로 분류해 효율적인 스케줄 관리를 제공합니다.
+                  "내일 3교시에 과학 실험 수업이 있어" → 자동으로 일정 등록<br/>
+                  "다음 주 화요일 학부모 상담" → 스케줄에 추가
                 </p>
-                <div className="flex items-center text-blue-600 font-semibold">
-                  <span className="text-2xl mr-2">84%</span>
-                  <span className="text-sm">시간 절약</span>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">예시: 수업, 회의, 상담 일정을 자연어로 간편하게</p>
                 </div>
               </CardContent>
             </Card>

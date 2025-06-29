@@ -14,7 +14,8 @@ import {
   Users, 
   Send,
   Lightbulb,
-  Sparkles
+  Sparkles,
+  FileText
 } from "lucide-react";
 import { Link } from "wouter";
 import type { Schedule, Record, Assessment, Student } from "@shared/schema";
@@ -334,24 +335,24 @@ export default function Home() {
             </Card>
         </div>
 
-        {/* AI Suggestions Section */}
-        <Card className="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <Lightbulb className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI 제안</h3>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-700">• 일정 관리에서 새로운 수업이나 상담 일정을 추가해보세요.</p>
-                  <p className="text-sm text-gray-700">• 학생 명단에서 Excel 파일을 업로드하여 학생 정보를 관리해보세요.</p>
-                  <p className="text-sm text-gray-700">• 자연어 명령을 사용하여 "내일 수학 수업 일정 추가해줘"와 같이 말해보세요.</p>
+          {/* AI Suggestions Section */}
+          <Card className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-lg">
+                  <Lightbulb className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">AI 제안</h3>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700">• 일정 관리에서 새로운 수업이나 상담 일정을 추가해보세요.</p>
+                    <p className="text-sm text-gray-700">• 학생 명단에서 Excel 파일을 업로드하여 학생 정보를 관리해보세요.</p>
+                    <p className="text-sm text-gray-700">• 자연어 명령을 사용하여 "내일 수학 수업 일정 추가해줘"와 같이 말해보세요.</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         </main>
       </div>
     </>
