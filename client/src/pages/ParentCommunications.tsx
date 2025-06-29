@@ -186,11 +186,15 @@ export default function ParentCommunications() {
                     <SelectValue placeholder="학생을 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    {students.map((student) => (
+                    {students.length > 0 ? students.map((student) => (
                       <SelectItem key={student.id} value={student.name}>
                         {student.name}
                       </SelectItem>
-                    ))}
+                    )) : (
+                      <SelectItem value="" disabled>
+                        등록된 학생이 없습니다
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
