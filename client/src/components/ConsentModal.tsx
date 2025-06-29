@@ -76,7 +76,7 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center text-2xl">
             <Shield className="w-7 h-7 mr-3 text-blue-600" />
@@ -87,9 +87,10 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
           </p>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-6 pb-6">
-            {/* Service Terms Preview */}
+        <div className="relative flex-1">
+          <ScrollArea className="h-full px-6 max-h-[calc(90vh-180px)]">
+            <div className="space-y-6 pb-6">
+              {/* Service Terms Preview */}
             <Card className="border-blue-200">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-lg">
@@ -206,25 +207,34 @@ export default function ConsentModal({ isOpen, onConsentComplete }: ConsentModal
                 </Card>
               ))}
             </div>
+            </div>
+          </ScrollArea>
+          
+          {/* Scroll indicator */}
+          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none flex items-end justify-center pb-1">
+            <div className="text-xs text-gray-400 animate-bounce">
+              ↓ 아래로 스크롤하여 모든 내용을 확인해 주세요
+            </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <div className="p-6 pt-0 border-t bg-gray-50">
-          <div className="flex items-center justify-between">
+        <div className="p-6 pt-4 border-t bg-gray-50 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
             <div className="text-sm text-gray-600">
               문의: amatta.edu@gmail.com
             </div>
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={() => window.location.href = "/api/logout"}
+                className="flex-1 sm:flex-none"
               >
                 취소
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={submitConsentMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none"
               >
                 {submitConsentMutation.isPending ? "처리 중..." : "동의하고 시작하기"}
               </Button>
