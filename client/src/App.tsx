@@ -87,6 +87,7 @@ function Router() {
               <Route path="/parent-communications" component={ParentCommunications} />
               <Route path="/data-management" component={DataManagement} />
               <Route path="/settings" component={Settings} />
+              <Route path="/privacy-policy" component={PrivacyPolicy} />
               <Route component={NotFound} />
             </Switch>
           </div>
