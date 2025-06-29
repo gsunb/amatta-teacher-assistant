@@ -1,16 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "node build.js",
-  "builds": [
-    {
-      "src": "server/index.ts",
-      "use": "@vercel/node"
+  "installCommand": "npm ci",
+  "buildCommand": "./vercel-build.sh",
+  "framework": null,
+  "functions": {
+    "server/index.ts": {
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/server/index.ts"
-    }
-  ]
+  }
 }

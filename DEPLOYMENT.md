@@ -17,9 +17,7 @@ git push -u origin main
 1. [vercel.com](https://vercel.com) 접속 후 로그인
 2. "New Project" 클릭
 3. GitHub 레포지토리 `amatta-teacher-assistant` 선택
-4. Framework Preset: "Other" 선택
-5. Build Command: `node build.js` (자동 감지됨)
-6. "Deploy" 클릭
+4. "Deploy" 클릭 (설정은 vercel.json에서 자동 처리됨)
 
 ### 3. 환경 변수 설정 (3분)
 Vercel Dashboard → Settings → Environment Variables 에서 추가:
@@ -54,9 +52,11 @@ https://your-project-name.vercel.app/api/auth/google/callback
 ### 문제 해결
 
 **404 NOT_FOUND 오류 해결:**
-1. Vercel Dashboard → Functions 탭에서 빌드 로그 확인
-2. `node build.js` 명령어가 정상 실행되었는지 확인
-3. 환경변수 `NODE_ENV=production` 설정 확인
+1. vercel.json 설정이 올바른지 확인 (functions 방식 사용)
+2. Vercel Dashboard → Functions 탭에서 빌드 로그 확인
+3. vercel-build.sh 스크립트가 실행되었는지 확인
+4. 환경변수 `NODE_ENV=production` 설정 확인
+5. 서버가 정적 파일을 올바르게 서빙하는지 확인
 
 **로그인 오류**: Vercel Functions 탭에서 에러 로그 확인
 **데이터베이스 오류**: DATABASE_URL 환경변수 재확인
