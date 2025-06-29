@@ -293,14 +293,38 @@ export default function Landing() {
           <p className="text-xl text-blue-100 mb-10">
             수천 명의 교사들이 이미 Amatta로 더 스마트한 교실 관리를 경험하고 있습니다.
           </p>
-          <Button
-            size="lg"
-            onClick={() => window.location.href = "/api/login"}
-            className="bg-white hover:bg-gray-50 text-blue-600 px-10 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-          >
-            무료로 시작하기
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              size="lg"
+              onClick={() => window.location.href = "/api/login"}
+              className="bg-white hover:bg-gray-50 text-blue-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+            >
+              Replit으로 시작하기
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            
+            {isGoogleAuthAvailable && (
+              <Button
+                size="lg"
+                onClick={() => window.location.href = "/api/auth/google"}
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+              >
+                <SiGoogle className="mr-2 h-5 w-5" />
+                Google로 시작하기
+              </Button>
+            )}
+            
+            <Link href="/signup">
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+              >
+                이메일로 가입하기
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

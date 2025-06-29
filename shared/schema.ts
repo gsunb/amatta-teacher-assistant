@@ -77,8 +77,7 @@ export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
   subject: text("subject").notNull(),
-  unit: text("unit").notNull(),
-  task: text("task").notNull(),
+  examName: text("exam_name").notNull(), // Combined unit + task into exam name
   studentName: text("student_name"),
   score: integer("score"),
   maxScore: integer("max_score"),
