@@ -199,12 +199,13 @@ export default function Records() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-3">
+      {/* Mobile-optimized header */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-4">
           <FileText className="h-8 w-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-900">누가 기록</h1>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
           <Select value={selectedStudentFilter} onValueChange={setSelectedStudentFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="학생별 필터" />
@@ -500,13 +501,13 @@ export default function Records() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {record.title}
                       </h3>
                       <Badge 
                         variant="secondary" 
-                        className={`flex items-center space-x-1 ${
+                        className={`inline-flex items-center space-x-1 whitespace-nowrap ${
                           record.severity === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
                           record.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                           'bg-green-100 text-green-800 border-green-200'

@@ -331,36 +331,44 @@ export default function Assessments() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">성과 평가</h1>
-        <div className="flex space-x-2">
-          <div className="flex border rounded-lg overflow-hidden">
-            <Button
-              variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('dashboard')}
-              size="sm"
-              className="rounded-none"
-            >
-              <BarChart className="h-4 w-4 mr-2" />
-              대시보드
-            </Button>
-            <Button
-              variant={viewMode === 'by-task' ? 'default' : 'ghost'}
-              onClick={() => setViewMode('by-task')}
-              size="sm"
-              className="rounded-none"
-            >
-              <Grid className="h-4 w-4 mr-2" />
-              과제별 비교
-            </Button>
-          </div>
-          <Button variant="outline" onClick={downloadTemplate}>
+      {/* Mobile-optimized header */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <BarChart className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-gray-900">성과 평가</h1>
+        </div>
+        
+        {/* First row: Template Download and Excel Upload */}
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-3">
+          <Button variant="outline" onClick={downloadTemplate} className="flex-1 sm:flex-none">
             <Download className="h-4 w-4 mr-2" />
             템플릿 다운로드
           </Button>
-          <Button onClick={() => setIsUploading(!isUploading)}>
+          <Button onClick={() => setIsUploading(!isUploading)} className="flex-1 sm:flex-none">
             <Upload className="h-4 w-4 mr-2" />
-            평가 업로드
+            엑셀 업로드
+          </Button>
+        </div>
+        
+        {/* Second row: Dashboard and Task Comparison */}
+        <div className="flex border rounded-lg overflow-hidden">
+          <Button
+            variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
+            onClick={() => setViewMode('dashboard')}
+            size="sm"
+            className="rounded-none flex-1"
+          >
+            <BarChart className="h-4 w-4 mr-2" />
+            대시보드
+          </Button>
+          <Button
+            variant={viewMode === 'by-task' ? 'default' : 'ghost'}
+            onClick={() => setViewMode('by-task')}
+            size="sm"
+            className="rounded-none flex-1"
+          >
+            <Grid className="h-4 w-4 mr-2" />
+            과제별 비교
           </Button>
         </div>
       </div>

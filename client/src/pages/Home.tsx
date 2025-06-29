@@ -165,20 +165,22 @@ export default function Home() {
                   <span className="text-xs text-gray-500">AI 연결됨</span>
                 </div>
                 
-                {/* Submit Button */}
-                <div className="flex justify-between items-center mt-4">
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                {/* AI Status and Submit Button */}
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                     <Sparkles className="h-4 w-4 text-primary" />
                     <span>AI가 자연어로 명령을 이해합니다</span>
                   </div>
-                  <Button 
-                    onClick={handleSubmitCommand}
-                    disabled={processCommandMutation.isPending}
-                    className="px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    실행하기
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={handleSubmitCommand}
+                      disabled={processCommandMutation.isPending}
+                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      실행하기
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
