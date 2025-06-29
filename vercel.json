@@ -1,11 +1,23 @@
 {
   "version": 2,
-  "installCommand": "npm ci",
-  "buildCommand": "./vercel-build.sh",
-  "framework": null,
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/dist/**",
+      "use": "@vercel/static"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/dist/$1"
+    }
+  ]
 }
