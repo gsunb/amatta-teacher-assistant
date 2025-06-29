@@ -25,9 +25,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
-      return await apiRequest("POST", "/api/auth/login", data);
+      console.log("Attempting login with:", data.email);
+      const result = await apiRequest("POST", "/api/auth/login", data);
+      console.log("Login result:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Login successful:", data);
       toast({
         title: "로그인 성공",
         description: "환영합니다!",
@@ -35,6 +39,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       window.location.reload();
     },
     onError: (error: Error) => {
+      console.error("Login error:", error);
       toast({
         title: "로그인 실패",
         description: error.message,
@@ -69,16 +74,20 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       return await apiRequest("POST", "/api/auth/forgot-password", data);
     },
     onSuccess: (data: any) => {
+      console.log("Password reset response:", data);
       toast({
-        title: "비밀번호 재설정",
-        description: data.debug ? `재설정 링크: ${data.resetLink}` : "비밀번호 재설정 이메일이 발송되었습니다.",
+        title: "비밀번호 재설정 링크 생성됨",
+        description: data.resetLink ? "재설정 링크를 새 탭에서 열었습니다." : data.message,
+        duration: 5000,
       });
-      if (data.debug && data.resetLink) {
+      if (data.resetLink) {
+        // Open reset link in new tab for development
         window.open(data.resetLink, '_blank');
       }
       setMode('email-login');
     },
     onError: (error: Error) => {
+      console.error("Password reset error:", error);
       toast({
         title: "오류",
         description: error.message,

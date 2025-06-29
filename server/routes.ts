@@ -344,14 +344,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store reset token
       await storage.createPasswordResetToken(user.id, token);
 
-      // In a real app, you would send an email here
-      // For now, we'll return the reset link in the response
+      // Create reset link
       const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${token}`;
       
+      // For demo purposes, we'll show the reset link in console and response
+      // In production, this would be sent via email
+      console.log(`비밀번호 재설정 링크: ${resetLink}`);
+      
       res.json({ 
-        message: "비밀번호 재설정 링크가 생성되었습니다.",
-        resetLink: resetLink, // Remove this in production - should only be sent via email
-        debug: true // Remove this in production
+        message: "비밀번호 재설정 링크가 콘솔에 출력되었습니다. (실제로는 이메일로 전송됩니다)",
+        resetLink: resetLink, // Remove this in production
+        instructions: "개발 모드에서는 서버 콘솔에서 링크를 확인하세요."
       });
 
     } catch (error) {
@@ -468,12 +471,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find user by email
       const user = await storage.getUserByEmail(email);
-      if (!user || !user.password) {
+      console.log("Login attempt for:", email, "User found:", !!user, "Has password:", !!user?.password, "Auth provider:", user?.authProvider);
+      
+      if (!user) {
         return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      if (!user.password) {
+        return res.status(401).json({ message: "이 계정은 소셜 로그인 전용입니다. 다른 방법으로 로그인해주세요." });
       }
 
       // Check password
       const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log("Password validation result:", isValidPassword);
+      
       if (!isValidPassword) {
         return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
       }
