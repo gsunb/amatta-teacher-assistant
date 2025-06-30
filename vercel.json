@@ -1,21 +1,10 @@
 {
-  "version": 2,
-  "builds": [],
-  "outputDirectory": "api",
   "functions": {
     "api/index.js": {
-      "runtime": "@vercel/node@3.1.5",
-      "includeFiles": []
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/health",
-      "dest": "/api/health.js"
+      "runtime": "@vercel/node@18.x"
     },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.js"
+    "api/health.js": {
+      "runtime": "@vercel/node@18.x"
     }
-  ]
+  }
 }

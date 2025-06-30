@@ -1,0 +1,138 @@
+Time
+Status
+Host
+Request
+Messages
+Jun 30 11:05:26.70
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:25.65
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.png
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:25.41
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:23.59
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:23.37
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.png
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:22.80
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:22.04
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.png
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:21.85
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:19.63
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:18.39
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:18.32
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:18.18
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:18.10
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:18.04
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:17.87
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:17.12
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:16.89
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/favicon.ico
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:16.81
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:16.71
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:16.50
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:16.10
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Jun 30 11:05:15.98
+GET
+500
+amatta-teacher-assistant-6dwpo1zgi-amattas-projects-8fb3a76e.vercel.app
+/
+ReferenceError: module is not defined in ES module scope This file is being treated as an ES module because it has a '.js' file extension and '/var/task/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension. at file:///var/task/api/index.js:2:1 at ModuleJob.run (node:internal/modules/esm/module_job:274:25) at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26) at async d (/opt/rust/nodejs.js:16:20075) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+No more logs to show within selected timeline
