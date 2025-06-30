@@ -51,6 +51,10 @@ https://amatta-teacher-assistant.vercel.app/api/auth/callback
 https://amatta-teacher-assistant.vercel.app
 ```
 
+## 배포 문제 해결
+- Node.js 버전 오류 수정: 22.x → 18.x 설정 추가
+- `vercel.json`에 engines 설정으로 호환성 보장
+
 ## 다음 단계
 1. Google Cloud Console에서 위 URL들 승인
 2. Vercel 재배포 확인
