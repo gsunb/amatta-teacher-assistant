@@ -127,6 +127,74 @@
       color: #888;
       font-size: 0.9em;
     }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: -10px;
+    }
+
+    .close:hover {
+      color: #000;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #4f46e5;
+    }
+
+    .modal h3 {
+      margin-top: 0;
+      margin-bottom: 25px;
+      color: #1a1a1a;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -164,5 +232,77 @@
       Google Gemini AI 기반 • 자연어 처리 • 교육 전용
     </div>
   </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>로그인</h3>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">이메일</label>
+          <input type="email" id="email" name="email" value="webtest@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">비밀번호</label>
+          <input type="password" id="password" name="password" value="test123456" required>
+        </div>
+        <button type="submit" class="btn primary">로그인</button>
+        <button type="button" onclick="loginWithGoogle()" class="btn">구글로 로그인</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Add simple interactivity
+    document.addEventListener('DOMContentLoaded', function() {
+      const header = document.querySelector('h1');
+      header.style.opacity = '0';
+      header.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        header.style.transition = 'all 0.8s ease';
+        header.style.opacity = '1';
+        header.style.transform = 'translateY(0)';
+      }, 300);
+    });
+
+    function startDemo() {
+      document.getElementById('loginModal').style.display = 'block';
+    }
+
+    function loginWithGoogle() {
+      window.location.href = '/api/auth/google';
+    }
+
+    // Modal functionality
+    const modal = document.getElementById('loginModal');
+    const span = document.getElementsByClassName('close')[0];
+    
+    span.onclick = function() {
+      modal.style.display = 'none';
+    }
+    
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      // Redirect to full demo with credentials
+      const fullDemoUrl = 'https://7bd14e1d-f528-4e0f-b331-16789a96b602-00-oxaen58gvfiw.janeway.replit.dev/';
+      window.open(fullDemoUrl, '_blank');
+      
+      // Show success message
+      alert('데모 환경으로 이동합니다!\n\n이메일: ' + email + '\n비밀번호: ' + password + '\n\n새 창에서 로그인해주세요.');
+    });
+  </script>
 </body>
 </html>
