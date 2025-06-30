@@ -1,6 +1,6 @@
 export default function handler(req, res) {
   // Handle favicon requests
-  if (req.url === '/favicon.ico') {
+  if (req.url === '/favicon.ico' || req.url === '/favicon.png') {
     res.setHeader('Content-Type', 'image/x-icon');
     res.status(200).end();
     return;
@@ -110,7 +110,7 @@ export default function handler(req, res) {
     <p class="subtitle">교사 AI 어시스턴트</p>
     
     <div class="status">
-      ✅ 배포 성공! ES 모듈 충돌 해결 완료
+      ✅ ES 모듈 충돌 최종 해결 완료
     </div>
     
     <div class="features">

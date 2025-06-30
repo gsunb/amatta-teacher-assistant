@@ -3,5 +3,11 @@
   "buildCommand": "mkdir -p public && echo 'Serverless functions only' > public/index.html",
   "outputDirectory": "public",
   "installCommand": "echo 'No install needed'",
-  "devCommand": null
+  "devCommand": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/main.js"
+    }
+  ]
 }
