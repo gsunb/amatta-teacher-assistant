@@ -97,6 +97,30 @@
     .btn.primary:hover {
       box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
     }
+    .demo-info {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .demo-info h4 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+    .demo-info p {
+      color: #f0f0f0;
+      margin: 8px 0;
+      font-family: 'Courier New', monospace;
+    }
+    .demo-note {
+      font-style: italic;
+      color: #d0d0d0 !important;
+      font-family: inherit !important;
+      margin-top: 15px;
+    }
     .footer {
       margin-top: 30px;
       color: #888;
@@ -124,8 +148,15 @@
       </ul>
     </div>
     
-    <a href="https://amatta-teacher-assistant-kkrmr4yml-amattas-projects.vercel.app/" class="btn primary">시작하기</a>
-    <a href="/api/health" class="btn">API 상태 확인</a>
+    <a href="https://amatta-teacher-assistant-kkrmr4yml-amattas-projects.vercel.app/" class="btn primary">데모 체험하기</a>
+    <a href="/api/health" class="btn">API 상태</a>
+    
+    <div class="demo-info">
+      <h4>🎯 테스트 계정</h4>
+      <p><strong>이메일:</strong> webtest@example.com</p>
+      <p><strong>비밀번호:</strong> test123456</p>
+      <p class="demo-note">위 계정으로 모든 기능을 체험해보세요!</p>
+    </div>
     
     <div class="footer">
       Google Gemini AI 기반 • 자연어 처리 • 교육 전용

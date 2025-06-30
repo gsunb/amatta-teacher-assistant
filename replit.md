@@ -195,6 +195,7 @@ Amatta is a Progressive Web Application (PWA) designed as a comprehensive AI ass
 - June 29, 2025. Final resolution of JavaScript display bug: completely rewrote api/index.js as pure HTML serverless function, eliminated all dependencies and build processes, configured Vercel to serve only static HTML responses
 - June 29, 2025. Fixed Vercel module system conflict: identified ReferenceError from CommonJS/ES module mismatch, converted serverless functions to ES6 export syntax, resolved 500 FUNCTION_INVOCATION_FAILED errors
 - June 30, 2025. Complete Vercel deployment success: resolved ES module conflicts, implemented professional Korean landing page with feature descriptions, enhanced API health endpoint with system status, eliminated favicon errors, achieved stable production deployment at https://amatta-teacher-assistant.vercel.app/
+- June 30, 2025. Enhanced landing page with demo access: added test account credentials (webtest@example.com/test123456), direct demo link to full application, improved user onboarding for public testing
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
