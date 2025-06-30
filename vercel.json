@@ -1,16 +1,12 @@
 {
-  "buildCommand": "cd client && npm run build",
-  "outputDirectory": "client/dist",
-  "installCommand": "npm install",
+  "framework": null,
+  "buildCommand": "mkdir -p public && cp api/landing.html public/index.html",
+  "outputDirectory": "public",
+  "installCommand": "echo 'No install needed'",
+  "devCommand": null,
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs18.x"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
-    }
-  ]
+  }
 }
